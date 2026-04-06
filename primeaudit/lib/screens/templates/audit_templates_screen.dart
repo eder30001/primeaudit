@@ -334,11 +334,11 @@ class _AuditTemplatesScreenState extends State<AuditTemplatesScreen> {
                 ],
               )
             : Icon(Icons.chevron_right_rounded, color: AppTheme.of(context).textSecondary),
-        onTap: widget.canManage && (!t.isGlobal || widget.companyId == null)
-            ? () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => TemplateBuilderScreen(template: t),
-              )).then((_) => _load())
-            : null,
+        // Qualquer usuário com permissão pode visualizar o template;
+        // edição é restrita pelo trailing (PopupMenuButton só aparece quando autorizado).
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => TemplateBuilderScreen(template: t),
+          )).then((_) => _load()),
       ),
     );
   }

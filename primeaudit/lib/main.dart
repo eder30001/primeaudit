@@ -43,7 +43,7 @@ class PrimeAuditApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: appThemeMode,
-      builder: (_, mode, __) => MaterialApp(
+      builder: (_, mode, _) => MaterialApp(
         title: 'PrimeAudit',
         debugShowCheckedModeBanner: false,
         themeMode: mode,

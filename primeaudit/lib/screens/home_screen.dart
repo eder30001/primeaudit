@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../services/company_context_service.dart';
 import '../services/user_service.dart';
 import 'admin/admin_screen.dart';
+import 'audits_screen.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
 import 'templates/audit_types_screen.dart';
@@ -192,7 +193,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 _drawerItem(
                   icon: Icons.playlist_add_check_rounded,
                   title: 'Auditorias',
-                  onTap: () => Navigator.of(context).pop(), // próxima tela
+                  onTap: () => _navigate(AuditsScreen(
+                    currentUserId: _authService.currentUser?.id ?? '',
+                    currentUserName: _name,
+                  )),
                 ),
                 _drawerItem(
                   icon: Icons.bar_chart_rounded,
