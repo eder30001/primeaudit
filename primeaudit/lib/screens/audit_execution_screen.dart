@@ -336,6 +336,30 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
   // ── Finalizar ────────────────────────────────────────────────────────────
 
   Future<void> _finalize() async {
+    // ── Guarda D-06: bloqueia finalização se há respostas com falha ───────
+    if (_failedSaves.isNotEmpty) {
+      final count = _failedSaves.length;
+      final respostas = count > 1 ? 'respostas' : 'resposta';
+      final verbo = count > 1 ? 'foram salvas' : 'foi salva';
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Respostas não salvas'),
+          content: Text(
+            '$count $respostas não $verbo. '
+            'Resolva as falhas antes de finalizar.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Entendido'),
+            ),
+          ],
+        ),
+      );
+      return; // NÃO prossegue para o dialog de confirmação de finalização
+    }
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
