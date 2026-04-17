@@ -3,6 +3,7 @@
 // Scaffold criado no Plan 01 (Wave 0). Os casos são implementados no Plan 03.
 
 import 'package:flutter_test/flutter_test.dart';
+// ignore: unused_import — import necessário; implementação chegará no Plan 03 (Wave 2).
 import 'package:primeaudit/screens/pending_save.dart';
 
 void main() {
