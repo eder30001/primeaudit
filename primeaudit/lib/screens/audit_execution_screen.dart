@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
 import '../core/app_theme.dart';
@@ -6,6 +8,12 @@ import '../models/audit_template.dart';
 import '../services/audit_answer_service.dart';
 import '../services/audit_service.dart';
 import '../services/audit_template_service.dart';
+import 'pending_save.dart';
+
+// Alias interno: usamos `_PendingSave` na tela (convenção de classe privada
+// do projeto para tipos usados apenas dentro deste arquivo), mas a classe
+// real é pública para permitir teste unitário direto em test/pending_save_test.dart.
+typedef _PendingSave = PendingSave;
 
 class AuditExecutionScreen extends StatefulWidget {
   final Audit audit;
@@ -17,6 +25,8 @@ class AuditExecutionScreen extends StatefulWidget {
 }
 
 class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
+  static const int _maxAutoRetryAttempts = 4;
+
   final _templateService = AuditTemplateService();
   final _answerService = AuditAnswerService();
   final _auditService = AuditService();
@@ -27,6 +37,12 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
   // itemId → resposta | itemId → observação
   final Map<String, String> _answers = {};
   final Map<String, String> _observations = {};
+
+  // Fila de retry: itemId → dados do save com falha
+  final Map<String, _PendingSave> _failedSaves = {};
+
+  // Controle de retry em andamento por item (evita loops duplos)
+  final Set<String> _retrying = {};
 
   bool _loading = true;
   bool _finalizing = false;
