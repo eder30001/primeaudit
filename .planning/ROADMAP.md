@@ -23,7 +23,11 @@ Esta milestone corrige os riscos técnicos mais críticos antes que o app chegue
   2. Enquanto uma resposta aguarda confirmação do servidor, o item exibe um indicador "pendente" (spinner ou ícone) distinto do estado salvo
   3. O auditor pode tocar num item com falha e tentar re-salvar manualmente sem precisar reiniciar a tela ou fechar a auditoria
   4. O `catch` vazio em `audit_execution_screen.dart:228` não existe mais — erros de save são capturados, logados e propagados para a UI
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 01-01-PLAN.md — Wave 0: extrair PendingSave para classe pública + criar scaffolds de teste (pending_save_test.dart, audit_execution_save_error_test.dart) e remover smoke test quebrado
+- [ ] 01-02-PLAN.md — Wave 1: corrigir _saveAnswer (remover catch silencioso), implementar _showSaveError + _scheduleRetry com backoff exponencial, inserir guarda D-06 em _finalize
+- [ ] 01-03-PLAN.md — Wave 2: preencher unit tests de PendingSave e widget tests da guarda D-06; DINT-01/DINT-03 manual-only documentados
 **UI hint**: no
 
 ### Phase 2: Security
@@ -77,7 +81,7 @@ Esta milestone corrige os riscos técnicos mais críticos antes que o app chegue
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Integrity | 0/? | Not started | - |
+| 1. Data Integrity | 0/3 | Planned | - |
 | 2. Security | 0/? | Not started | - |
 | 3. Test Coverage | 0/? | Not started | - |
 | 4. Performance | 0/? | Not started | - |
