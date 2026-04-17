@@ -6,7 +6,7 @@ Esta milestone corrige os riscos técnicos mais críticos antes que o app chegue
 
 ## Phases
 
-- [ ] **Phase 1: Data Integrity** - Tornar falhas de save visíveis e recuperáveis para o auditor
+- [x] **Phase 1: Data Integrity** - Tornar falhas de save visíveis e recuperáveis para o auditor (completed 2026-04-17)
 - [ ] **Phase 2: Security** - Garantir que RLS, RBAC e validações de entrada bloqueiem acesso indevido
 - [ ] **Phase 3: Test Coverage** - Cobrir lógica crítica com testes unitários verificáveis
 - [ ] **Phase 4: Performance** - Eliminar o N+1 em reorderItems com batch update
@@ -27,7 +27,7 @@ Esta milestone corrige os riscos técnicos mais críticos antes que o app chegue
 Plans:
 - [x] 01-01-PLAN.md — Wave 0: extrair PendingSave para classe pública + criar scaffolds de teste (pending_save_test.dart, audit_execution_save_error_test.dart) e remover smoke test quebrado
 - [x] 01-02-PLAN.md — Wave 1: corrigir _saveAnswer (remover catch silencioso), implementar _showSaveError + _scheduleRetry com backoff exponencial, inserir guarda D-06 em _finalize
-- [ ] 01-03-PLAN.md — Wave 2: preencher unit tests de PendingSave e widget tests da guarda D-06; DINT-01/DINT-03 manual-only documentados
+- [x] 01-03-PLAN.md — Wave 2: preencher unit tests de PendingSave e widget tests da guarda D-06; DINT-01/DINT-03 manual-only documentados
 **UI hint**: no
 
 ### Phase 2: Security
@@ -81,7 +81,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Integrity | 1/3 | In Progress|  |
+| 1. Data Integrity | 3/3 | Complete   | 2026-04-17 |
 | 2. Security | 0/? | Not started | - |
 | 3. Test Coverage | 0/? | Not started | - |
 | 4. Performance | 0/? | Not started | - |
