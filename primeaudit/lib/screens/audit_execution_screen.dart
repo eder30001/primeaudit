@@ -232,17 +232,104 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
     }
   }
 
-  Future<void> _saveAnswer(String itemId, String response,
-      {String? observation}) async {
+  Future<void> _saveAnswer(
+    String itemId,
+    String response, {
+    String? observation,
+  }) async {
+    // Resolve observação: parâmetro explícito vence, senão o map, senão null.
+    final obs = observation ?? _observations[itemId];
     try {
       await _answerService.upsertAnswer(
         auditId: widget.audit.id,
         templateItemId: itemId,
         response: response,
-        observation: observation ?? _observations[itemId],
+        observation: obs,
       );
-    } catch (_) {
-      // Falha silenciosa — pode tentar novamente ao finalizar
+      // Sucesso: se esse item estava na fila de falhas, remove.
+      if (_failedSaves.containsKey(itemId) && mounted) {
+        setState(() => _failedSaves.remove(itemId));
+      }
+    } catch (e) {
+      // D-07: não mascarar erros — log de dev + UI feedback + retry queue.
+      debugPrint('[_saveAnswer] itemId=$itemId erro: $e');
+      if (!mounted) return;
+      setState(() {
+        _failedSaves[itemId] = _PendingSave(
+          itemId: itemId,
+          response: response,
+          observation: obs,
+        );
+      });
+      _showSaveError(itemId, response, obs);
+      _scheduleRetry(itemId);
+    }
+  }
+
+  // D-01 + D-02 + D-04: notificação única via snackbar com action de retry manual.
+  void _showSaveError(String itemId, String response, String? observation) {
+    if (!mounted) return;
+    // Captura o messenger ANTES de qualquer async gap (evita uso de context
+    // inválido após a closure do action ser invocada).
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars(); // evita acúmulo de snackbars em falhas sucessivas
+    messenger.showSnackBar(
+      SnackBar(
+        content: const Text('Não foi possível salvar'),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 6),
+        action: SnackBarAction(
+          label: 'Tentar novamente',
+          textColor: Colors.white,
+          onPressed: () {
+            // itemId/response/observation são Strings imutáveis — captura segura.
+            _saveAnswer(itemId, response, observation: observation);
+          },
+        ),
+      ),
+    );
+  }
+
+  // D-05: retry automático com backoff exponencial.
+  // Delays: tentativa 0 = 1s, 1 = 2s, 2 = 4s, 3 = 8s. Após 4 falhas auto,
+  // para — retry manual via snackbar continua disponível e bloqueio de
+  // finalização (D-06) sinaliza ao usuário que algo ainda está pendente.
+  Future<void> _scheduleRetry(String itemId) async {
+    if (_retrying.contains(itemId)) return; // já existe loop para este item
+    _retrying.add(itemId);
+    try {
+      while (_failedSaves.containsKey(itemId)) {
+        final pending = _failedSaves[itemId]!;
+        if (pending.attemptCount >= _maxAutoRetryAttempts) break;
+
+        final delaySeconds = pow(2, pending.attemptCount).toInt(); // 1, 2, 4, 8
+        await Future.delayed(Duration(seconds: delaySeconds));
+
+        // Guard mounted (convenção do projeto — CONVENTIONS.md):
+        if (!mounted || !_failedSaves.containsKey(itemId)) break;
+
+        try {
+          await _answerService.upsertAnswer(
+            auditId: widget.audit.id,
+            templateItemId: itemId,
+            response: pending.response,
+            observation: pending.observation,
+          );
+          if (mounted) {
+            setState(() => _failedSaves.remove(itemId));
+          }
+          break; // sucesso — sai do loop
+        } catch (_) {
+          if (mounted) {
+            setState(() {
+              _failedSaves[itemId] = pending.copyWithAttempt();
+            });
+          }
+        }
+      }
+    } finally {
+      _retrying.remove(itemId);
     }
   }
 
