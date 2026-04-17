@@ -26,7 +26,7 @@ Esta milestone corrige os riscos técnicos mais críticos antes que o app chegue
 **Plans**: 3 plans
 Plans:
 - [x] 01-01-PLAN.md — Wave 0: extrair PendingSave para classe pública + criar scaffolds de teste (pending_save_test.dart, audit_execution_save_error_test.dart) e remover smoke test quebrado
-- [ ] 01-02-PLAN.md — Wave 1: corrigir _saveAnswer (remover catch silencioso), implementar _showSaveError + _scheduleRetry com backoff exponencial, inserir guarda D-06 em _finalize
+- [x] 01-02-PLAN.md — Wave 1: corrigir _saveAnswer (remover catch silencioso), implementar _showSaveError + _scheduleRetry com backoff exponencial, inserir guarda D-06 em _finalize
 - [ ] 01-03-PLAN.md — Wave 2: preencher unit tests de PendingSave e widget tests da guarda D-06; DINT-01/DINT-03 manual-only documentados
 **UI hint**: no
 
