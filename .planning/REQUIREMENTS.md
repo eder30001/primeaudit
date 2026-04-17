@@ -7,9 +7,9 @@
 
 ### Integridade de Dados (DINT)
 
-- [ ] **DINT-01**: Auditor vê mensagem de erro quando save de resposta falha por rede ou timeout
-- [ ] **DINT-02**: App exibe indicador visual de resposta "pendente" enquanto aguarda confirmação do servidor
-- [ ] **DINT-03**: Auditor pode tentar re-salvar manualmente respostas que falharam
+- [x] **DINT-01**: Auditor vê mensagem de erro quando save de resposta falha por rede ou timeout
+- [x] **DINT-02**: App exibe indicador visual de resposta "pendente" enquanto aguarda confirmação do servidor
+- [x] **DINT-03**: Auditor pode tentar re-salvar manualmente respostas que falharam
 
 ### Segurança (SEC)
 
@@ -58,9 +58,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DINT-01 | Phase 1 | Pending |
-| DINT-02 | Phase 1 | Pending |
-| DINT-03 | Phase 1 | Pending |
+| DINT-01 | Phase 1 | Complete |
+| DINT-02 | Phase 1 | Complete |
+| DINT-03 | Phase 1 | Complete |
 | SEC-01 | Phase 2 | Pending |
 | SEC-02 | Phase 2 | Pending |
 | SEC-03 | Phase 2 | Pending |
