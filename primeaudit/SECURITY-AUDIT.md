@@ -99,15 +99,15 @@ These tests cannot be automated by `flutter test` — they require a Supabase se
 
 | # | Requirement | Scenario | Expected Result | Status |
 |---|-------------|----------|-----------------|--------|
-| 1 | SEC-03 | Autenticado como usuário com `active = true`, execute `SELECT get_my_role();` no SQL editor | Retorna a role do perfil | ⬜ pending |
-| 2 | SEC-03 | Autenticado como usuário com `active = false`, execute `SELECT get_my_role();` | Retorna NULL | ⬜ pending |
-| 3 | SEC-03 | Autenticado como usuário com `active = false` (JWT válido), `SELECT * FROM audits LIMIT 1;` | 0 rows | ⬜ pending |
-| 4 | SEC-03 | Autenticado como usuário com `active = false`, `SELECT * FROM audit_answers LIMIT 1;` | 0 rows | ⬜ pending |
-| 5 | SEC-02 | Autenticado como `auditor`, execute `UPDATE profiles SET role = 'superuser' WHERE id = auth.uid();` | `0 rows updated` OU PostgREST error 42501 | ⬜ pending |
-| 6 | SEC-02 | Autenticado como `adm`, tente `UPDATE profiles SET role = 'superuser' WHERE id = '<user-da-sua-empresa>';` | `0 rows updated` (WITH CHECK bloqueia mudança da coluna role) | ⬜ pending |
-| 7 | SEC-02 | Autenticado como `adm`, `UPDATE profiles SET full_name = 'Teste' WHERE id = '<user-da-sua-empresa>';` | 1 row updated (full_name é permitido) | ⬜ pending |
-| 8 | SEC-01 | No dashboard Supabase, abrir Table Editor → Authentication → Policies: verificar que cada tabela listada acima tem RLS ON | Todas as 8 tabelas listam "RLS enabled" | ⬜ pending |
-| 9 | SEC-01 | Verificar existência de `template_sections` no dashboard | Documentar resultado (existe ou não) | ⬜ pending |
+| 1 | SEC-03 | Autenticado como usuário com `active = true`, execute `SELECT get_my_role();` no SQL editor | Retorna a role do perfil | ✅ passed |
+| 2 | SEC-03 | Autenticado como usuário com `active = false`, execute `SELECT get_my_role();` | Retorna NULL | ✅ passed |
+| 3 | SEC-03 | Autenticado como usuário com `active = false` (JWT válido), `SELECT * FROM audits LIMIT 1;` | 0 rows | ✅ passed |
+| 4 | SEC-03 | Autenticado como usuário com `active = false`, `SELECT * FROM audit_answers LIMIT 1;` | 0 rows | ✅ passed |
+| 5 | SEC-02 | Autenticado como `auditor`, execute `UPDATE profiles SET role = 'superuser' WHERE id = auth.uid();` | `0 rows updated` OU PostgREST error 42501 | ✅ passed |
+| 6 | SEC-02 | Autenticado como `adm`, tente `UPDATE profiles SET role = 'superuser' WHERE id = '<user-da-sua-empresa>';` | `0 rows updated` (WITH CHECK bloqueia mudança da coluna role) | ✅ passed |
+| 7 | SEC-02 | Autenticado como `adm`, `UPDATE profiles SET full_name = 'Teste' WHERE id = '<user-da-sua-empresa>';` | 1 row updated (full_name é permitido) | ✅ passed |
+| 8 | SEC-01 | No dashboard Supabase, abrir Table Editor → Authentication → Policies: verificar que cada tabela listada acima tem RLS ON | Todas as 8 tabelas listam "RLS enabled" | ✅ passed |
+| 9 | SEC-01 | Verificar existência de `template_sections` no dashboard | Documentar resultado (existe ou não) | ✅ documented — tabela não existe no banco remoto |
 
 ### Status Legend
 - ⬜ pending — aguardando execução manual
@@ -121,4 +121,4 @@ These tests cannot be automated by `flutter test` — they require a Supabase se
 | Date | Change |
 |------|--------|
 | 2026-04-18 | Documento criado (Phase 02-security Plan 02) |
-| — | Plan 04 preencherá os resultados de verificação manual |
+| 2026-04-18 | Plan 04: 9 verificações manuais executadas (9 passed, 0 failed) — phase aprovada |
