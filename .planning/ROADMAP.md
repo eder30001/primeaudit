@@ -57,7 +57,12 @@ Plans:
   3. `AppRole` tem testes verificando `canAccessAdmin`, `canEdit` e demais helpers para cada role (`superuser`, `dev`, `adm`, `auditor`, `anonymous`)
   4. Os `fromMap()` dos 7 models listados (`Audit`, `AuditAnswer`, `AuditTemplate`, `TemplateItem`, `Perimeter`, `Company`, `UserProfile`) têm testes que parsam um mapa válido e verificam campos críticos
   5. `Perimeter.buildTree()` tem testes cobrindo hierarquias de 1, 2 e 3 níveis de profundidade, incluindo nó sem filhos e lista vazia
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 03-01-PLAN.md — Wave 1: tornar calculateConformity static + criar test/services/audit_answer_service_test.dart cobrindo 6 tipos + vazio + multi-peso (QUAL-01)
+- [ ] 03-02-PLAN.md — Wave 1: test/models/app_role_test.dart cobrindo canAccessAdmin, canAccessDev, isSuperOrDev, label para os 5 roles (QUAL-02; canEdit documentado como inexistente)
+- [ ] 03-03-PLAN.md — Wave 1: test/models/{audit,audit_answer,audit_template}_test.dart cobrindo fromMap com joins aninhados e defaults (QUAL-03 parte 1)
+- [ ] 03-04-PLAN.md — Wave 1: test/models/{company,app_user,perimeter}_test.dart cobrindo fromMap + Perimeter.buildTree em hierarquias de 0-3 níveis (QUAL-03 parte 2 + QUAL-04)
 **UI hint**: no
 
 ### Phase 4: Performance
@@ -88,6 +93,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Data Integrity | 3/3 | Complete   | 2026-04-17 |
 | 2. Security | 0/4 | Planned | - |
-| 3. Test Coverage | 0/? | Not started | - |
+| 3. Test Coverage | 0/4 | Planned | - |
 | 4. Performance | 0/? | Not started | - |
 | 5. Server Config | 0/? | Not started | - |
