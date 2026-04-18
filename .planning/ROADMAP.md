@@ -41,10 +41,10 @@ Plans:
   4. O campo CNPJ no formulário de registro rejeita um CNPJ com comprimento correto mas dígitos verificadores inválidos, exibindo mensagem de erro antes de qualquer chamada ao banco
 **Plans**: 4 plans
 Plans:
-- [ ] 02-01-PLAN.md — Wave 1: corrigir get_my_role() e get_my_company_id() com guarda `active = true` (SEC-03) via nova migration idempotente
-- [ ] 02-02-PLAN.md — Wave 2: migration RLS para profiles/companies/perimeters/audit_types/audit_templates/template_items (SEC-01, SEC-02) + SECURITY-AUDIT.md com plano de verificação manual
-- [ ] 02-03-PLAN.md — Wave 1: criar cnpj_validator.dart (SEC-04) com testes unitários e plugar no validator do TextFormField em register_screen.dart e company_form.dart
-- [ ] 02-04-PLAN.md — Wave 3: [BLOCKING] supabase db push + checkpoint humano executando as 9 verificações manuais de RLS e preenchendo SECURITY-AUDIT.md
+- [x] 02-01-PLAN.md — Wave 1: corrigir get_my_role() e get_my_company_id() com guarda `active = true` (SEC-03) via nova migration idempotente
+- [x] 02-02-PLAN.md — Wave 2: migration RLS para profiles/companies/perimeters/audit_types/audit_templates/template_items (SEC-01, SEC-02) + SECURITY-AUDIT.md com plano de verificação manual
+- [x] 02-03-PLAN.md — Wave 1: criar cnpj_validator.dart (SEC-04) com testes unitários e plugar no validator do TextFormField em register_screen.dart e company_form.dart
+- [x] 02-04-PLAN.md — Wave 3: [BLOCKING] supabase db push + checkpoint humano executando as 9 verificações manuais de RLS e preenchendo SECURITY-AUDIT.md
 **UI hint**: no
 
 ### Phase 3: Test Coverage
