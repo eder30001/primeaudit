@@ -59,10 +59,10 @@ Plans:
   5. `Perimeter.buildTree()` tem testes cobrindo hierarquias de 1, 2 e 3 níveis de profundidade, incluindo nó sem filhos e lista vazia
 **Plans**: 4 plans
 Plans:
-- [ ] 03-01-PLAN.md — Wave 1: tornar calculateConformity static + criar test/services/audit_answer_service_test.dart cobrindo 6 tipos + vazio + multi-peso (QUAL-01)
-- [ ] 03-02-PLAN.md — Wave 1: test/models/app_role_test.dart cobrindo canAccessAdmin, canAccessDev, isSuperOrDev, label para os 5 roles (QUAL-02; canEdit documentado como inexistente)
-- [ ] 03-03-PLAN.md — Wave 1: test/models/{audit,audit_answer,audit_template}_test.dart cobrindo fromMap com joins aninhados e defaults (QUAL-03 parte 1)
-- [ ] 03-04-PLAN.md — Wave 1: test/models/{company,app_user,perimeter}_test.dart cobrindo fromMap + Perimeter.buildTree em hierarquias de 0-3 níveis (QUAL-03 parte 2 + QUAL-04)
+- [x] 03-01-PLAN.md — Wave 1: tornar calculateConformity static + criar test/services/audit_answer_service_test.dart cobrindo 6 tipos + vazio + multi-peso (QUAL-01)
+- [x] 03-02-PLAN.md — Wave 1: test/models/app_role_test.dart cobrindo canAccessAdmin, canAccessDev, isSuperOrDev, label para os 5 roles (QUAL-02; canEdit documentado como inexistente)
+- [x] 03-03-PLAN.md — Wave 1: test/models/{audit,audit_answer,audit_template}_test.dart cobrindo fromMap com joins aninhados e defaults (QUAL-03 parte 1)
+- [x] 03-04-PLAN.md — Wave 1: test/models/{company,app_user,perimeter}_test.dart cobrindo fromMap + Perimeter.buildTree em hierarquias de 0-3 níveis (QUAL-03 parte 2 + QUAL-04)
 **UI hint**: no
 
 ### Phase 4: Performance
