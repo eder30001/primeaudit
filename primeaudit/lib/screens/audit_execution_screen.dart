@@ -133,7 +133,7 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
       widget.audit.status == AuditStatus.cancelada;
 
   double get _conformity =>
-      _answerService.calculateConformity(_allItems, _answers);
+      AuditAnswerService.calculateConformity(_allItems, _answers);
 
   // ── Responder (bloqueado em modo leitura) ─────────────────────────────────
 

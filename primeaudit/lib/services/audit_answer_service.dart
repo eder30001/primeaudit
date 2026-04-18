@@ -49,7 +49,7 @@ class AuditAnswerService {
 
   /// Calcula o percentual de conformidade com base nas respostas e nos itens.
   /// Retorna 0–100.
-  double calculateConformity(
+  static double calculateConformity(
     List<TemplateItem> items,
     Map<String, String> answers,
   ) {
