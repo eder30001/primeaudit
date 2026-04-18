@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_theme.dart';
+import '../../core/cnpj_validator.dart';
 import '../../models/company.dart';
 import '../../services/company_service.dart';
 
@@ -140,6 +141,7 @@ class _CompanyFormState extends State<CompanyForm> {
               label: 'CNPJ',
               icon: Icons.badge_outlined,
               keyboardType: TextInputType.number,
+              validator: validateCnpj,
             ),
             const SizedBox(height: 14),
             _buildField(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/app_colors.dart';
 import '../core/app_theme.dart';
+import '../core/cnpj_validator.dart';
 import '../models/company.dart';
 import '../services/auth_service.dart';
 import '../services/company_service.dart';
@@ -308,6 +309,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             textInputAction: TextInputAction.done,
             onChanged: _searchCompany,
             onFieldSubmitted: (_) => _register(),
+            validator: validateCnpj,
             decoration: _inputDecoration(
               label: 'CNPJ da empresa',
               hint: '00.000.000/0000-00',
