@@ -6,7 +6,7 @@ Esta milestone corrige os riscos técnicos mais críticos antes que o app chegue
 
 ## Phases
 
-- [x] **Phase 1: Data Integrity** - Tornar falhas de save visíveis e recuperáveis para o auditor (completed 2026-04-17)
+- [x] **Phase 1: Data Integrity** - Tornar falhas de save visíveis e recuperáveis para o auditor (completed 2026-04-17)
 - [ ] **Phase 2: Security** - Garantir que RLS, RBAC e validações de entrada bloqueiem acesso indevido
 - [ ] **Phase 3: Test Coverage** - Cobrir lógica crítica com testes unitários verificáveis
 - [ ] **Phase 4: Performance** - Eliminar o N+1 em reorderItems com batch update
@@ -39,7 +39,12 @@ Plans:
   2. Um usuário autenticado como `auditor` que chame `UserService.updateRole()` diretamente (sem UI) recebe erro do Supabase — a operação é bloqueada por RLS, não pela UI
   3. Um usuário com `active = false` que possua um JWT válido não consegue ler registros de nenhuma tabela protegida — o RLS nega o acesso mesmo com sessão ativa
   4. O campo CNPJ no formulário de registro rejeita um CNPJ com comprimento correto mas dígitos verificadores inválidos, exibindo mensagem de erro antes de qualquer chamada ao banco
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 02-01-PLAN.md — Wave 1: corrigir get_my_role() e get_my_company_id() com guarda `active = true` (SEC-03) via nova migration idempotente
+- [ ] 02-02-PLAN.md — Wave 2: migration RLS para profiles/companies/perimeters/audit_types/audit_templates/template_items (SEC-01, SEC-02) + SECURITY-AUDIT.md com plano de verificação manual
+- [ ] 02-03-PLAN.md — Wave 1: criar cnpj_validator.dart (SEC-04) com testes unitários e plugar no validator do TextFormField em register_screen.dart e company_form.dart
+- [ ] 02-04-PLAN.md — Wave 3: [BLOCKING] supabase db push + checkpoint humano executando as 9 verificações manuais de RLS e preenchendo SECURITY-AUDIT.md
 **UI hint**: no
 
 ### Phase 3: Test Coverage
@@ -82,7 +87,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Integrity | 3/3 | Complete   | 2026-04-17 |
-| 2. Security | 0/? | Not started | - |
+| 2. Security | 0/4 | Planned | - |
 | 3. Test Coverage | 0/? | Not started | - |
 | 4. Performance | 0/? | Not started | - |
 | 5. Server Config | 0/? | Not started | - |
