@@ -64,12 +64,13 @@ class CompanyService {
   }
 
   Future<Company?> findByCnpj(String cnpj) async {
-    final clean = cnpj.replaceAll(RegExp(r'[.\-/]'), '');
+    final clean = cnpj.replaceAll(RegExp(r'[.\-/\s]'), '');
+    if (clean.length != 14) return null;
     final data = await _client
         .from('companies')
         .select()
         .eq('active', true)
-        .or('cnpj.eq.$cnpj,cnpj.eq.$clean')
+        .eq('cnpj', clean)
         .maybeSingle();
     return data != null ? Company.fromMap(data) : null;
   }
