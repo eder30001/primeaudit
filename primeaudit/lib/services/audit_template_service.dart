@@ -204,14 +204,16 @@ class AuditTemplateService {
     await _client.from('template_items').delete().eq('id', id);
   }
 
-  /// Reordena itens atualizando [order_index] de cada um sequencialmente.
+  /// Reordena itens atualizando [order_index] via batch upsert em 1 query (PERF-01).
   /// Recebe a lista de IDs na nova ordem desejada.
+  /// Todos os IDs devem existir em `template_items` — IDs inválidos causam
+  /// erro de constraint (não silencioso).
   Future<void> reorderItems(List<String> ids) async {
-    for (int i = 0; i < ids.length; i++) {
-      await _client
-          .from('template_items')
-          .update({'order_index': i})
-          .eq('id', ids[i]);
-    }
+    if (ids.isEmpty) return;
+    final payload = [
+      for (int i = 0; i < ids.length; i++)
+        {'id': ids[i], 'order_index': i},
+    ];
+    await _client.from('template_items').upsert(payload);
   }
 }
