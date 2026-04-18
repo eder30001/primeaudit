@@ -73,7 +73,9 @@ Plans:
   1. `AuditTemplateService.reorderItems()` não contém `await` dentro de `for` loop — o loop sequencial foi substituído por uma operação batch (seja `Future.wait`, Edge Function, ou `UPDATE ... FROM VALUES`)
   2. Reordenar 20 itens em um template emite no máximo 1 query ao Supabase (ou queries paralelas — não sequenciais bloqueantes)
   3. O comportamento visual de reordenação na tela de template builder continua funcionando após a mudança
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [x] 04-01-PLAN.md — Wave 1: criar test scaffold com buildReorderPayload helper (4 testes: 0/1/3/20 itens), substituir for+await loop por .upsert(List<Map>) batch em audit_template_service.dart, verificação estática final (PERF-01)
 **UI hint**: no
 
 ### Phase 5: Server Config
@@ -94,5 +96,5 @@ Plans:
 | 1. Data Integrity | 3/3 | Complete   | 2026-04-17 |
 | 2. Security | 0/4 | Planned | - |
 | 3. Test Coverage | 0/4 | Planned | - |
-| 4. Performance | 0/? | Not started | - |
+| 4. Performance | 0/1 | Planned | - |
 | 5. Server Config | 0/? | Not started | - |
