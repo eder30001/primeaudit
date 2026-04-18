@@ -66,7 +66,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _cnpjNotFound = company == null;
       });
     } catch (_) {
-      if (mounted) setState(() => _cnpjNotFound = false);
+      if (mounted) {
+        setState(() => _cnpjNotFound = false);
+        _showError('Erro ao buscar empresa. Verifique sua conexão.');
+      }
     } finally {
       if (mounted) setState(() => _searchingCompany = false);
     }
