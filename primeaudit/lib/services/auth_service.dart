@@ -46,17 +46,11 @@ class AuthService {
     final response = await _client.auth.signUp(
       email: email,
       password: password,
-      data: {'full_name': name},
+      data: {
+        'full_name': name,
+        if (companyId != null) 'company_id': companyId,
+      },
     );
-
-    // Vincula a empresa ao perfil se fornecida
-    if (response.user != null && companyId != null) {
-      await _client
-          .from('profiles')
-          .update({'company_id': companyId})
-          .eq('id', response.user!.id);
-    }
-
     return response;
   }
 
