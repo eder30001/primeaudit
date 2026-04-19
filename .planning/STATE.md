@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Features & UX
-status: defining_requirements
+status: roadmap_ready
 stopped_at: ~
 last_updated: "2026-04-18T00:00:00.000Z"
 last_activity: 2026-04-18
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-18)
 
 **Core value:** Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencioso ou falha de rede não pode comprometer o trabalho do auditor.
-**Current focus:** Milestone v1.1 — Features & UX (defining requirements)
+**Current focus:** Milestone v1.1 — Features & UX (roadmap ready, planning Phase 6)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 6 — Templates (not started)
 Plan: —
-Status: Defining requirements
+Status: Roadmap ready — run `/gsd-plan-phase 6` to begin
 Last activity: 2026-04-18
 
 Progress: [░░░░░░░░░░] 0%
@@ -48,13 +48,21 @@ Progress: [░░░░░░░░░░] 0%
 - Migrations SQL seguem padrão idempotente YYYYMMDD_description.sql
 - Arquitetura 3 camadas: screens → services → models (sem DI, sem BLoC/Riverpod)
 
+### Decisions (v1.1)
+
+- Phase 8 entrega a migration de corrective_actions; Phase 7 (Dashboard) depende dela para o KPI de ações abertas — executar Phase 7 após migration de Phase 8 estar aplicada, ou planejar as duas em paralelo com Phase 7 usando valor zero como fallback
+- NotificationService deve ser singleton (padrão CompanyContextService) — única exceção ao padrão de serviço instanciado por tela, necessário para manter unreadCount vivo entre navegações
+- Upload de imagens é fluxo independente de _saveAnswer — falha de upload não bloqueia finalização de auditoria (core value)
+- fl_chart adicionado em Phase 7 (DASH-03) e reaproveitado em Phase 10 (REP-04) — não adicionar duas vezes ao pubspec
+
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-None for v1.1.
+- Phase 7 depende de corrective_actions table para KPI de ações abertas. Se Phase 8 for executada antes de Phase 7, a dependência é resolvida automaticamente. Se Phase 7 for executada primeiro, DashboardService deve tratar gracefully a ausência da tabela (retornar 0 para openActions).
+- NOTIF-03 (FCM push) tem alta complexidade de setup (firebase_messaging, google-services.json, APNs) — avaliar no planejamento de Phase 11 se pode ser entregue na mesma fase ou requer phase separada.
 
 ## Deferred Items
 
@@ -63,9 +71,11 @@ None for v1.1.
 | Offline | Modo offline completo com sync (OFFL-01, OFFL-02) | Out of scope | v1.0 init |
 | Relatórios | Exportação PDF/Excel | Out of scope | v1.1 init |
 | Relatórios | Relatórios consolidados multi-empresa | Out of scope | v1.1 init |
+| Configuração | CONF-01 — configurações críticas server-side | Deferred to v2 | v1.0 Phase 5 |
 
 ## Session Continuity
 
 Last session: 2026-04-18
-Stopped at: ~
+Stopped at: Roadmap created for v1.1
 Resume file: None
+Next action: `/gsd-plan-phase 6`

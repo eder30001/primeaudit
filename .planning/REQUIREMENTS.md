@@ -95,6 +95,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| TMPL-01 | Phase 6 | Pending |
+| TMPL-02 | Phase 6 | Pending |
 | DASH-01 | Phase 7 | Pending |
 | DASH-02 | Phase 7 | Pending |
 | DASH-03 | Phase 7 | Pending |
@@ -114,10 +116,8 @@
 | NOTIF-03 | Phase 11 | Pending |
 | NAV-01 | Phase 12 | Pending |
 | NAV-02 | Phase 12 | Pending |
-| TMPL-01 | Phase 6 | Pending |
-| TMPL-02 | Phase 6 | Pending |
 
 ---
 
 *Requirements defined: 2026-04-18*
-*Last updated: 2026-04-18 — milestone v1.1 started*
+*Last updated: 2026-04-18 — roadmap created for v1.1*
