@@ -1,5 +1,22 @@
 # PrimeAudit
 
+## Current Milestone: v1.1 Features & UX
+
+**Goal:** Adicionar as funcionalidades core que tornam o app utilizável em produção — dashboard, relatórios, ações corretivas e melhorias de UX.
+
+**Target features:**
+- Dashboard com indicadores de auditorias (US-01)
+- Menu flutuante FAB para navegação (US-02)
+- Tela de relatórios com filtros (US-03)
+- Tela de ações corretivas (US-04)
+- Upload de imagens nas perguntas (US-05)
+- Criação de ações diretamente nas auditorias (US-06)
+- Notificações e email automático (US-07)
+- Ordenação automática de perguntas no template (US-08)
+- Reordenação manual drag & drop ou botões (US-09)
+
+---
+
 ## What This Is
 
 App Flutter para realização de auditorias industriais em campo. Auditores executam checklists configuráveis por template, registrando respostas por item com cálculo automático de conformidade ponderada. O backend é Supabase (auth, banco, RLS) e o app suporta múltiplas empresas com RBAC por perfil.
@@ -23,20 +40,20 @@ Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencios
 
 ### Active
 
-- [ ] Feedback de erro visível quando save de resposta falha (rede/timeout)
-- [ ] Retry automático ou indicador de pendência para respostas não salvas
-- [ ] Verificação e documentação das RLS policies do Supabase (quais tabelas, quais operações)
-- [ ] Testes unitários para lógica crítica: calculateConformity, AppRole, fromMap dos models
-- [ ] Correção do N+1 em reorderItems (batch update em vez de loop sequencial)
-- [ ] Validação de CNPJ com checksum no formulário de registro
-- [ ] Settings sincronizados com servidor (modo manutenção, config de auditoria)
-- [ ] Enforçamento server-side de permissões em operações sensíveis (updateRole, updateCompany)
+- [ ] Dashboard com indicadores: total de auditorias, pendentes, ações em aberto
+- [ ] Menu flutuante FAB com navegação animada nas telas principais
+- [ ] Tela de relatórios com filtros por data e template, exibição em lista/gráfico
+- [ ] Tela de ações corretivas com status (aberta, em andamento, concluída) e filtros
+- [ ] Upload e visualização de imagens por pergunta nas auditorias
+- [ ] Criação de ações corretivas vinculadas a perguntas, com responsável e prazo
+- [ ] Notificações in-app e email automático para ações atribuídas
+- [ ] Ordenação automática e reordenação manual (drag & drop ou botões) de perguntas
 
 ### Out of Scope
 
-- Modo offline completo com sync posterior — complexidade alta, não é o foco desta milestone
-- Relatórios em PDF / exportação — funcionalidade nova, não é parte da correção estrutural
-- Notificações push — nova funcionalidade, fora do escopo
+- Modo offline completo com sync posterior — complexidade alta, milestone futura
+- Exportação em PDF/Excel — v2 após relatórios básicos estarem funcionando
+- Relatórios consolidados multi-empresa — admin feature de v2
 
 ## Context
 
@@ -80,4 +97,4 @@ Este documento evolui a cada transição de fase e milestone.
 4. Atualizar Context com estado atual
 
 ---
-*Last updated: 2026-04-16 after initialization*
+*Last updated: 2026-04-18 — milestone v1.1 started*
