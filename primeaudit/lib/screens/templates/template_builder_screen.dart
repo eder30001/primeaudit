@@ -358,6 +358,29 @@ class _TemplateBuilderScreenState extends State<TemplateBuilderScreen> {
     );
   }
 
+  // TMPL-02: persiste a nova ordem dos itens de uma seção após drag & drop.
+  // Em caso de falha, exibe SnackBar de erro e recarrega do banco para
+  // restaurar a ordem verdadeira (padrão do projeto — screens reload on error).
+  Future<void> _persistSectionOrder(TemplateSection section) async {
+    try {
+      await _service.reorderItems(section.items.map((i) => i.id).toList());
+    } catch (_) {
+      _showError('Erro ao salvar nova ordem. A ordem foi restaurada.');
+      _load();
+    }
+  }
+
+  // TMPL-02: persiste a nova ordem dos itens sem seção após drag & drop.
+  // Mesma semântica do _persistSectionOrder, mas para `_items`.
+  Future<void> _persistUnsectionedOrder() async {
+    try {
+      await _service.reorderItems(_items.map((i) => i.id).toList());
+    } catch (_) {
+      _showError('Erro ao salvar nova ordem. A ordem foi restaurada.');
+      _load();
+    }
+  }
+
   void _showError(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -420,9 +443,28 @@ class _TemplateBuilderScreenState extends State<TemplateBuilderScreen> {
               : ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                   children: [
-                    // Itens sem seção
+                    // Itens sem seção — drag & drop via ReorderableListView (TMPL-02)
                     if (_items.isNotEmpty) ...[
-                      ..._items.map((item) => _buildItemCard(item)),
+                      ReorderableListView(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        buildDefaultDragHandles: true,
+                        onReorder: (int oldIndex, int newIndex) {
+                          if (oldIndex < newIndex) newIndex -= 1;
+                          setState(() {
+                            final item = _items.removeAt(oldIndex);
+                            _items.insert(newIndex, item);
+                          });
+                          _persistUnsectionedOrder();
+                        },
+                        children: [
+                          for (final item in _items)
+                            KeyedSubtree(
+                              key: ValueKey(item.id),
+                              child: _buildItemCard(item),
+                            ),
+                        ],
+                      ),
                       const SizedBox(height: 8),
                     ],
                     // Seções
@@ -542,7 +584,28 @@ class _TemplateBuilderScreenState extends State<TemplateBuilderScreen> {
             ),
           )
         else
-          ...section.items.map((item) => _buildItemCard(item, inSection: true)),
+          // Items da seção — drag & drop via ReorderableListView (TMPL-02).
+          // Uma ReorderableListView POR seção — cross-section reorder é out of scope.
+          ReorderableListView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: true,
+            onReorder: (int oldIndex, int newIndex) {
+              if (oldIndex < newIndex) newIndex -= 1;
+              setState(() {
+                final item = section.items.removeAt(oldIndex);
+                section.items.insert(newIndex, item);
+              });
+              _persistSectionOrder(section);
+            },
+            children: [
+              for (final item in section.items)
+                KeyedSubtree(
+                  key: ValueKey(item.id),
+                  child: _buildItemCard(item, inSection: true),
+                ),
+            ],
+          ),
         const SizedBox(height: 4),
       ],
     );
