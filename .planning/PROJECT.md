@@ -97,4 +97,4 @@ Este documento evolui a cada transição de fase e milestone.
 4. Atualizar Context com estado atual
 
 ---
-*Last updated: 2026-04-18 — milestone v1.1 started*
+*Last updated: 2026-04-23 — Phase 06 complete (TMPL-01 ordering fix, TMPL-02 drag & drop reorder)*
