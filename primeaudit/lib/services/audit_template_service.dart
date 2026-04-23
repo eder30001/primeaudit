@@ -204,27 +204,21 @@ class AuditTemplateService {
     await _client.from('template_items').delete().eq('id', id);
   }
 
-  /// Reordena itens atualizando [order_index] via batch upsert em 1 query (PERF-01).
-  /// Recebe a lista de IDs na nova ordem desejada.
-  /// Todos os IDs devem existir em `template_items` — IDs inválidos causam
-  /// erro de constraint (não silencioso).
+  /// Reordena itens atualizando [order_index] via UPDATE individual por ID.
+  /// UPDATE evita o INSERT implícito do upsert, que pode falhar por RLS ou
+  /// por constraints NOT NULL em colunas não fornecidas.
   Future<void> reorderItems(List<String> ids) async {
     if (ids.isEmpty) return;
-    final payload = [
-      for (int i = 0; i < ids.length; i++)
-        {'id': ids[i], 'order_index': i},
-    ];
-    await _client.from('template_items').upsert(payload, defaultToNull: false);
+    for (int i = 0; i < ids.length; i++) {
+      await _client.from('template_items').update({'order_index': i}).eq('id', ids[i]);
+    }
   }
 
-  /// Reordena seções atualizando [order_index] via batch upsert em 1 query.
-  /// Recebe a lista de IDs na nova ordem desejada.
+  /// Reordena seções atualizando [order_index] via UPDATE individual por ID.
   Future<void> reorderSections(List<String> ids) async {
     if (ids.isEmpty) return;
-    final payload = [
-      for (int i = 0; i < ids.length; i++)
-        {'id': ids[i], 'order_index': i},
-    ];
-    await _client.from('template_sections').upsert(payload, defaultToNull: false);
+    for (int i = 0; i < ids.length; i++) {
+      await _client.from('template_sections').update({'order_index': i}).eq('id', ids[i]);
+    }
   }
 }
