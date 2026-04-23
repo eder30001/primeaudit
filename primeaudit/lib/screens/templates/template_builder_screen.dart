@@ -366,7 +366,7 @@ class _TemplateBuilderScreenState extends State<TemplateBuilderScreen> {
       await _service.reorderItems(section.items.map((i) => i.id).toList());
     } catch (_) {
       _showError('Erro ao salvar nova ordem. A ordem foi restaurada.');
-      _load();
+      if (mounted) _load();
     }
   }
 
@@ -377,7 +377,17 @@ class _TemplateBuilderScreenState extends State<TemplateBuilderScreen> {
       await _service.reorderItems(_items.map((i) => i.id).toList());
     } catch (_) {
       _showError('Erro ao salvar nova ordem. A ordem foi restaurada.');
-      _load();
+      if (mounted) _load();
+    }
+  }
+
+  // TMPL-02: persiste a nova ordem das seções após drag & drop.
+  Future<void> _persistSectionsOrder() async {
+    try {
+      await _service.reorderSections(_sections.map((s) => s.id).toList());
+    } catch (_) {
+      _showError('Erro ao salvar nova ordem das seções. A ordem foi restaurada.');
+      if (mounted) _load();
     }
   }
 
@@ -467,8 +477,28 @@ class _TemplateBuilderScreenState extends State<TemplateBuilderScreen> {
                       ),
                       const SizedBox(height: 8),
                     ],
-                    // Seções
-                    ..._sections.map((s) => _buildSection(s)),
+                    // Seções — drag & drop via ReorderableListView (TMPL-02)
+                    if (_sections.isNotEmpty)
+                      ReorderableListView(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        buildDefaultDragHandles: false,
+                        onReorder: (int oldIndex, int newIndex) {
+                          if (oldIndex < newIndex) newIndex -= 1;
+                          setState(() {
+                            final section = _sections.removeAt(oldIndex);
+                            _sections.insert(newIndex, section);
+                          });
+                          _persistSectionsOrder();
+                        },
+                        children: [
+                          for (int i = 0; i < _sections.length; i++)
+                            KeyedSubtree(
+                              key: ValueKey(_sections[i].id),
+                              child: _buildSection(_sections[i], i),
+                            ),
+                        ],
+                      ),
                   ],
                 ),
     );
@@ -496,7 +526,7 @@ class _TemplateBuilderScreenState extends State<TemplateBuilderScreen> {
     );
   }
 
-  Widget _buildSection(TemplateSection section) {
+  Widget _buildSection(TemplateSection section, int sectionIndex) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -510,6 +540,13 @@ class _TemplateBuilderScreenState extends State<TemplateBuilderScreen> {
           ),
           child: Row(
             children: [
+              ReorderableDragStartListener(
+                index: sectionIndex,
+                child: const Padding(
+                  padding: EdgeInsets.only(left: 4, right: 4),
+                  child: Icon(Icons.drag_handle_rounded, size: 18, color: AppColors.primary),
+                ),
+              ),
               const Icon(Icons.folder_outlined, size: 18, color: AppColors.primary),
               const SizedBox(width: 8),
               Expanded(child: Text(section.name,
