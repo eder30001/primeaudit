@@ -59,6 +59,12 @@ Progress: [░░░░░░░░░░] 0%
 
 None.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260423-qzs | Corrigir bug de ordenação e adicionar reorder de seções no TemplateBuilderScreen | 2026-04-23 | 0afdd83 | [260423-qzs-corrigir-bug-de-ordena-o-e-adicionar-reo](.planning/quick/260423-qzs-corrigir-bug-de-ordena-o-e-adicionar-reo/) |
+
 ### Blockers/Concerns
 
 - Phase 7 depende de corrective_actions table para KPI de ações abertas. Se Phase 8 for executada antes de Phase 7, a dependência é resolvida automaticamente. Se Phase 7 for executada primeiro, DashboardService deve tratar gracefully a ausência da tabela (retornar 0 para openActions).
