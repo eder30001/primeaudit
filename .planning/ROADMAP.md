@@ -28,7 +28,9 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
   1. Na tela de execução de auditoria, as perguntas aparecem na ordem definida por `order_index`, sem embaralhamento
   2. No template builder, o admin pode arrastar uma pergunta para cima ou para baixo e a nova ordem é salva no banco após soltar
   3. Após reordenar e fechar o template builder, reabrir o template mostra a nova ordem persistida
-**Plans**: TBD
+**Plans**: 2 plans
+  - [x] 06-01-PLAN.md - TMPL-01: Fix item ordering in AuditExecutionScreen._load() (bucket sort by orderIndex after grouping)
+  - [x] 06-02-PLAN.md - TMPL-02: Drag & drop reorder in TemplateBuilderScreen (ReorderableListView + reorderItems persistence)
 **UI hint**: yes
 
 ### Phase 7: Dashboard
@@ -106,7 +108,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 6. Templates | 0/? | Not started | - |
+| 6. Templates | 0/2 | Not started | - |
 | 7. Dashboard | 0/? | Not started | - |
 | 8. Corrective Actions | 0/? | Not started | - |
 | 9. Images | 0/? | Not started | - |
