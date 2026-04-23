@@ -214,6 +214,17 @@ class AuditTemplateService {
       for (int i = 0; i < ids.length; i++)
         {'id': ids[i], 'order_index': i},
     ];
-    await _client.from('template_items').upsert(payload);
+    await _client.from('template_items').upsert(payload, defaultToNull: false);
+  }
+
+  /// Reordena seções atualizando [order_index] via batch upsert em 1 query.
+  /// Recebe a lista de IDs na nova ordem desejada.
+  Future<void> reorderSections(List<String> ids) async {
+    if (ids.isEmpty) return;
+    final payload = [
+      for (int i = 0; i < ids.length; i++)
+        {'id': ids[i], 'order_index': i},
+    ];
+    await _client.from('template_sections').upsert(payload, defaultToNull: false);
   }
 }
