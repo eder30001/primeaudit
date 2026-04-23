@@ -70,17 +70,24 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
       final items    = results[1] as List<TemplateItem>;
       final answers  = results[2] as List;
 
-      // Associa items às seções
+      // Associa items às seções — preserva sort por order_index dentro de cada bucket.
+      // PostgREST já devolve a lista plana ordenada por order_index, mas o
+      // `putIfAbsent + add` distribui os itens em buckets preservando a ordem
+      // de iteração (não a ordem relativa por seção). O sort explícito abaixo
+      // garante que cada bucket esteja ordenado por orderIndex — fix TMPL-01.
       final itemsBySection = <String?, List<TemplateItem>>{};
       for (final item in items) {
         itemsBySection.putIfAbsent(item.sectionId, () => []).add(item);
       }
       for (final s in sections) {
-        s.items = itemsBySection[s.id] ?? [];
+        final bucket = itemsBySection[s.id] ?? [];
+        bucket.sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+        s.items = bucket;
       }
 
       // Items sem seção ficam numa seção fictícia "Geral"
       final unsectioned = itemsBySection[null] ?? [];
+      unsectioned.sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
 
       // Popula respostas existentes
       for (final a in answers) {
