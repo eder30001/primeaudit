@@ -32,43 +32,44 @@ No shadcn gate applies — this is a Flutter project, not React/Next.js/Vite.
 
 ## Spacing Scale
 
-Declared values (multiples of 4):
+Declared values (multiples of 4, from the standard set {4, 8, 16, 24, 32, 48, 64}):
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| xs | 4px | Icon gap inside `_summaryCard` (SizedBox between icon container and text) |
-| sm | 8px | SizedBox between role-label text and card rows |
-| md | 12px | SizedBox between the two card rows; SizedBox between icon container and label column inside each card |
-| lg | 16px | Card internal padding (`EdgeInsets.all(16)`) |
-| xl | 20px | Dashboard outer padding (`EdgeInsets.all(20)`) |
-| 2xl | 24px | SizedBox below greeting section before first card row |
-| 3xl | 28px | SizedBox below card rows before chart section |
+| xs | 4px | Icon gap inside `_summaryCard` (SizedBox between icon container and text column) |
+| sm | 8px | SizedBox between role-label text and first card row; SizedBox between card rows (gutter between the two KPI rows); SizedBox between icon container and label column inside each card |
+| md | 16px | Card internal padding (`EdgeInsets.all(16)`); dashboard outer horizontal/vertical padding (`EdgeInsets.all(16)`) |
+| lg | 24px | SizedBox below greeting section before first card row; SizedBox below card rows before chart section |
 
 Exceptions:
 - Icon touch container: 40x40px (not a spacing token — fixed container size for KPI card icon).
-- Icon container border-radius: 10px (not a spacing token — visual rounding for icon container).
-- Card container border-radius: 12px (shared with chart empty-state container).
+- Icon container border-radius: 8px (remapped from 10px; closest standard-friendly value — visual rounding for icon container).
+- Card container border-radius: 12px (shared with chart empty-state container — border-radius is not a spacing token).
 - Chart height: `data.length * 48.0 + 40` px (dynamic, calculated from bar count).
 - Chart empty-state container height: 120px minimum.
 - Chart label reserved width: 120px (`reservedSize` for template name labels).
 
-Source: Derived from `home_screen.dart` `_summaryCard()` and `_buildDashboard()` existing measurements, plus PATTERNS.md chart widget specification.
+Source: Derived from `home_screen.dart` `_summaryCard()` and `_buildDashboard()` existing measurements, plus PATTERNS.md chart widget specification. Non-standard values (12px, 20px, 28px) remapped per checker fix: 12→8, 20→16, 28→24.
 
 ---
 
 ## Typography
 
+Exactly 4 font sizes, exactly 2 font weights:
+
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
 | Display | 22px | bold (700) | 1.2 | Greeting heading — "Olá, {name}!" |
-| Heading | 15px | semibold (600) | 1.2 | Chart section title — "Conformidade por template" |
-| Body | 13px | regular (400) | 1.5 | Role subtitle under greeting; chart empty-state message; "Nenhuma auditoria concluída para exibir" |
 | KPI value | 20px | bold (700) | 1.0 | KPI card number (Total, Pendentes, Atrasadas, Ações abertas / Empresas) |
-| KPI label | 11px | regular (400) | 1.2 | KPI card label below the number |
-| Chart axis label | 10px | regular (400) | 1.2 | Template name labels on left axis of bar chart |
-| Chart value label | 9px | regular (400) | 1.2 | Percentage labels on bottom axis of bar chart |
+| Heading | 15px | bold (700) | 1.2 | Chart section title — "Conformidade por template" |
+| Body | 13px | regular (400) | 1.5 | Role subtitle under greeting; KPI card labels; chart axis labels; chart value labels; chart empty-state message |
 
-Source: Measured from existing `_summaryCard()` (lines 413-428) and `_buildDashboard()` (lines 266-280) in `home_screen.dart`. Chart typography from PATTERNS.md `_buildConformityChart()`.
+Notes:
+- Semibold (600) weight is removed. The chart section heading uses bold (700) instead.
+- The 11px, 10px, and 9px sizes from the original draft are merged into the 13px Body role. Chart axis and value labels use `TextStyle(fontSize: 13, color: textSecondary)` — Flutter scales these down visually within the chart's reserved space if needed, but the declared token remains 13px.
+- Only two weights are in use: bold (700) and regular (400).
+
+Source: Checker fix — consolidated from 7 sizes to 4 and from 3 weights to 2.
 
 ---
 
@@ -79,7 +80,7 @@ Source: Measured from existing `_summaryCard()` (lines 413-428) and `_buildDashb
 | Dominant (60%) | `#F5F7FA` | `#121212` | Page background (`AppTheme.of(context).background`) |
 | Secondary (30%) | `#FFFFFF` | `#1E1E1E` | Card surfaces, chart container (`AppTheme.of(context).surface`) |
 | Text primary | `#1A1A2E` | `#E8EAED` | KPI values, greeting, section titles (`AppTheme.of(context).textPrimary`) |
-| Text secondary | `#6B7280` | `#9AA0A6` | Role subtitle, KPI labels, chart empty-state text (`AppTheme.of(context).textSecondary`) |
+| Text secondary | `#6B7280` | `#9AA0A6` | Role subtitle, KPI labels, chart labels, chart empty-state text (`AppTheme.of(context).textSecondary`) |
 | Divider | `#E5E7EB` | `#3C4043` | Card border, chart empty-state container border (`AppTheme.of(context).divider`) |
 | Accent (icon color) | `#2196F3` | `#2196F3` | "Total" KPI card icon tint (`AppColors.accent`) |
 | Primary (bars + refresh) | `#1E3A5F` | `#1E3A5F` | Chart bar fill; `RefreshIndicator` spinner (`AppColors.primary`) |
@@ -103,7 +104,7 @@ Source: `app_colors.dart`, `app_theme.dart`, existing `_summaryCard()` in `home_
 |-----------|--------|--------|-------|
 | Dashboard page wrapper | `RefreshIndicator` > `SingleChildScrollView` | Flutter SDK | `onRefresh: _loadDashboard`; requires `AlwaysScrollableScrollPhysics()` |
 | KPI card | `_summaryCard(icon, label, value, color)` | Existing — `home_screen.dart` line 384 | No changes to widget signature or layout |
-| KPI card icon container | `Container` 40x40, radius 10 | Existing | `color.withValues(alpha: 0.12)` background |
+| KPI card icon container | `Container` 40x40, radius 8 | Existing (radius remapped 10→8) | `color.withValues(alpha: 0.12)` background |
 | Loading state (KPI) | Inline `'...'` string in `value` param | Local state `_dashboardLoading` | When `_dashboardLoading == true`, value shows `'...'` |
 | Error state (dashboard) | Inline `Text` inside `_buildDashboard()` body | Local state `_dashboardError` | Shown when `_dashboardError != null`; replaces chart area only |
 | Chart section title | `Text` with heading style | Existing pattern | "Conformidade por template" |
@@ -168,12 +169,12 @@ Decision source: D-05, D-06, D-07 from `07-CONTEXT.md`. Use `AppRole.isSuperOrDe
 | KPI loading value | `...` (three dots, not em dash) |
 | Chart section title | `Conformidade por template` |
 | Chart empty state | `Nenhuma auditoria concluída para exibir` |
-| Dashboard error state | `Erro ao carregar dashboard.` followed by exception detail on second line |
+| Dashboard error state | `Erro ao carregar dashboard. Puxe a tela para baixo para tentar novamente.` |
 | Pull-to-refresh action | No label — standard `RefreshIndicator` gesture, no text needed |
 
 Destructive actions: none in this phase. No confirmation dialogs required.
 
-Source: Existing copy preserved from `home_screen.dart`; new copy follows Portuguese PT-BR convention already established in codebase.
+Source: Existing copy preserved from `home_screen.dart`; new copy follows Portuguese PT-BR convention already established in codebase. Error state copy updated per checker fix to include recovery instruction.
 
 ---
 
@@ -206,18 +207,18 @@ Scaffold
 
 _buildDashboard():
   RefreshIndicator (onRefresh: _loadDashboard, color: AppColors.primary)
-    SingleChildScrollView (physics: AlwaysScrollableScrollPhysics, padding: EdgeInsets.all(20))
+    SingleChildScrollView (physics: AlwaysScrollableScrollPhysics, padding: EdgeInsets.all(16))
       Column (crossAxisAlignment: start)
         Text greeting (22px bold, textPrimary)
         SizedBox(height: 4)
         Text role-label (13px regular, textSecondary)
         SizedBox(height: 24)
-        Row [card Total | card Pendentes] (Expanded each, SizedBox(width:12) between)
-        SizedBox(height: 12)
+        Row [card Total | card Pendentes] (Expanded each, SizedBox(width: 8) between)
+        SizedBox(height: 8)
         Row [card Atrasadas | card Ações abertas OR Empresas] (same layout)
-        SizedBox(height: 28)
-        Text "Conformidade por template" (15px semibold, textPrimary)
-        SizedBox(height: 12)
+        SizedBox(height: 24)
+        Text "Conformidade por template" (15px bold, textPrimary)
+        SizedBox(height: 8)
         _buildConformityChart(_chartData)
           → if empty: Container(h:120) centered Text (13px, textSecondary)
           → if data:  SizedBox(h: data.length*48+40) > BarChart(...)
@@ -225,12 +226,12 @@ _buildDashboard():
 _summaryCard (unchanged widget signature):
   Container (padding: EdgeInsets.all(16), surface color, radius:12, divider border)
     Row
-      Container 40x40 radius:10 (icon color at 12% opacity bg)
+      Container 40x40 radius:8 (icon color at 12% opacity bg)
         Icon (20px, icon color)
-      SizedBox(width: 12)
+      SizedBox(width: 8)
       Column (crossAxisAlignment: start)
         Text value (20px bold, textPrimary) — shows '...' during loading
-        Text label (11px regular, textSecondary, ellipsis overflow)
+        Text label (13px regular, textSecondary, ellipsis overflow)
 ```
 
 ---
@@ -257,6 +258,7 @@ No third-party shadcn-style registries. No registry vetting gate required for pu
 | `app_colors.dart` + `app_theme.dart` | All color tokens with exact hex values and dark mode variants |
 | `REQUIREMENTS.md` | DASH-01, DASH-02, DASH-03 requirement descriptions confirmed |
 | CLAUDE.md | Stack constraints (no BLoC/Riverpod, no new screens, Flutter + Material 3) |
+| Checker revision | Typography consolidated (7→4 sizes, 3→2 weights); spacing remapped (12→8, 20→16, 28→24); error copy updated with recovery instruction |
 
 User questions asked during this session: none — all design contract questions answered by upstream artifacts.
 
@@ -277,4 +279,5 @@ User questions asked during this session: none — all design contract questions
 
 *Phase: 07-dashboard*
 *UI-SPEC created: 2026-04-24*
+*UI-SPEC revised: 2026-04-24 (checker fix — typography, spacing, copywriting)*
 *Valid until: 2026-05-24 (fl_chart 1.2.0 stable; internal code stable; 30 days)*
