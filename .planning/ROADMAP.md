@@ -41,7 +41,9 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
   1. O dashboard exibe cards com: total de auditorias, pendentes, atrasadas e ações em aberto — todos com valores reais do banco, scoped pela empresa ativa
   2. Puxar a tela para baixo (pull-to-refresh) atualiza todos os cards sem navegar para outra tela
   3. Um gráfico mostra a conformidade média por template de auditoria para o período recente
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 07-01-PLAN.md — fl_chart dependency + DashboardService + unit test scaffold (Wave 1)
+  - [ ] 07-02-PLAN.md — home_screen.dart: real KPI cards + RefreshIndicator + conformity chart (Wave 2)
 **UI hint**: yes
 
 ### Phase 8: Corrective Actions
@@ -109,7 +111,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 6. Templates | 0/2 | Not started | - |
-| 7. Dashboard | 0/? | Not started | - |
+| 7. Dashboard | 0/2 | Not started | - |
 | 8. Corrective Actions | 0/? | Not started | - |
 | 9. Images | 0/? | Not started | - |
 | 10. Reports | 0/? | Not started | - |
