@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Phase Archive
-status: executing
-stopped_at: Phase 6 UI-SPEC approved
-last_updated: "2026-04-23T22:00:36.693Z"
-last_activity: 2026-04-23
+milestone: v1.1
+milestone_name: Features & UX
+status: ready
+stopped_at: Phase 7 complete — human UAT approved
+last_updated: "2026-04-25T00:00:00.000Z"
+last_activity: 2026-04-25
 progress:
   total_phases: 7
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 100
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
+  percent: 29
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-18)
 
 **Core value:** Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencioso ou falha de rede não pode comprometer o trabalho do auditor.
-**Current focus:** Phase 06 — templates
+**Current focus:** Phase 08 — Corrective Actions
 
 ## Current Position
 
-Phase: 7
+Phase: 8
 Plan: Not started
-Status: Executing Phase 06
-Last activity: 2026-04-23
+Status: Phase 7 complete — ready to plan Phase 8
+Last activity: 2026-04-25
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 29%
 
 ## Performance Metrics
 
@@ -67,7 +67,7 @@ None.
 
 ### Blockers/Concerns
 
-- Phase 7 depende de corrective_actions table para KPI de ações abertas. Se Phase 8 for executada antes de Phase 7, a dependência é resolvida automaticamente. Se Phase 7 for executada primeiro, DashboardService deve tratar gracefully a ausência da tabela (retornar 0 para openActions).
+- Phase 7 concluída com openActions=0 fallback (DashboardService.getOpenActionsCount retorna 0 enquanto corrective_actions não existe). Phase 8 resolve esta dependência ao criar a tabela.
 - NOTIF-03 (FCM push) tem alta complexidade de setup (firebase_messaging, google-services.json, APNs) — avaliar no planejamento de Phase 11 se pode ser entregue na mesma fase ou requer phase separada.
 
 ## Deferred Items
@@ -81,7 +81,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-19T02:31:35.548Z
-Stopped at: Phase 6 UI-SPEC approved
-Resume file: .planning/phases/06-templates/06-UI-SPEC.md
-Next action: `/gsd-plan-phase 6`
+Last session: 2026-04-25T00:00:00.000Z
+Stopped at: Phase 7 complete — human UAT approved
+Resume file: .planning/phases/07-dashboard/07-VERIFICATION.md
+Next action: `/gsd-discuss-phase 8` or `/gsd-plan-phase 8`

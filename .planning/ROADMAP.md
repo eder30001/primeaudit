@@ -9,7 +9,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 ## Phases
 
 - [ ] **Phase 6: Templates** - Corrigir ordenação e habilitar reordenação manual de perguntas no builder
-- [ ] **Phase 7: Dashboard** - Exibir indicadores reais de auditorias e ações no dashboard
+- [x] **Phase 7: Dashboard** - Exibir indicadores reais de auditorias e ações no dashboard
 - [ ] **Phase 8: Corrective Actions** - Criar, listar e gerenciar ações corretivas com fluxo de status CAPA
 - [ ] **Phase 9: Images** - Anexar e visualizar fotos por pergunta durante a execução da auditoria
 - [ ] **Phase 10: Reports** - Filtrar e visualizar relatórios de auditorias concluídas com gráficos
@@ -42,8 +42,8 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
   2. Puxar a tela para baixo (pull-to-refresh) atualiza todos os cards sem navegar para outra tela
   3. Um gráfico mostra a conformidade média por template de auditoria para o período recente
 **Plans**: 2 plans
-  - [ ] 07-01-PLAN.md — fl_chart dependency + DashboardService + unit test scaffold (Wave 1)
-  - [ ] 07-02-PLAN.md — home_screen.dart: real KPI cards + RefreshIndicator + conformity chart (Wave 2)
+  - [x] 07-01-PLAN.md — fl_chart dependency + DashboardService + unit test scaffold (Wave 1)
+  - [x] 07-02-PLAN.md — home_screen.dart: real KPI cards + RefreshIndicator + conformity chart (Wave 2)
 **UI hint**: yes
 
 ### Phase 8: Corrective Actions
@@ -111,7 +111,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 6. Templates | 0/2 | Not started | - |
-| 7. Dashboard | 0/2 | Not started | - |
+| 7. Dashboard | 2/2 | Complete | 2026-04-25 |
 | 8. Corrective Actions | 0/? | Not started | - |
 | 9. Images | 0/? | Not started | - |
 | 10. Reports | 0/? | Not started | - |

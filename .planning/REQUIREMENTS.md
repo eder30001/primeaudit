@@ -10,9 +10,9 @@
 
 ### Dashboard (DASH)
 
-- [ ] **DASH-01**: Usuário vê cards com total de auditorias, pendentes, atrasadas e ações em aberto (scoped por empresa)
-- [ ] **DASH-02**: Usuário pode atualizar o dashboard via pull-to-refresh
-- [ ] **DASH-03**: Usuário vê gráfico de conformidade média por template de auditoria
+- [x] **DASH-01**: Usuário vê cards com total de auditorias, pendentes, atrasadas e ações em aberto (scoped por empresa)
+- [x] **DASH-02**: Usuário pode atualizar o dashboard via pull-to-refresh
+- [x] **DASH-03**: Usuário vê gráfico de conformidade média por template de auditoria
 
 ### Ações Corretivas (ACT)
 
@@ -97,9 +97,9 @@
 |-------------|-------|--------|
 | TMPL-01 | Phase 6 | Pending |
 | TMPL-02 | Phase 6 | Pending |
-| DASH-01 | Phase 7 | Pending |
-| DASH-02 | Phase 7 | Pending |
-| DASH-03 | Phase 7 | Pending |
+| DASH-01 | Phase 7 | Complete — 2026-04-25 |
+| DASH-02 | Phase 7 | Complete — 2026-04-25 |
+| DASH-03 | Phase 7 | Complete — 2026-04-25 |
 | ACT-01 | Phase 8 | Pending |
 | ACT-02 | Phase 8 | Pending |
 | ACT-03 | Phase 8 | Pending |
