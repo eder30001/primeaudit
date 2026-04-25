@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/app_colors.dart';
 import '../core/app_roles.dart';
 import '../core/app_theme.dart';
+import '../models/audit.dart';
+import '../services/audit_service.dart';
 import '../services/auth_service.dart';
 import '../services/company_context_service.dart';
+import '../services/dashboard_service.dart';
 import '../services/user_service.dart';
 import 'admin/admin_screen.dart';
 import 'audits_screen.dart';
@@ -22,12 +27,22 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _authService = AuthService();
   final _userService = UserService();
+  final _auditService = AuditService();
+  final _dashboardService = DashboardService();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String _role = '';
   String _name = '';
   String _email = '';
   bool _loading = true;
+  int _totalAudits = 0;
+  int _pendingAudits = 0;
+  int _overdueAudits = 0;
+  int _openActions = 0;
+  int _companiesCount = 0;
+  List<_TemplateConformity> _chartData = [];
+  bool _dashboardLoading = false;
+  String? _dashboardError;
 
   @override
   void initState() {
@@ -52,10 +67,78 @@ class _HomeScreenState extends State<HomeScreen> {
           _email = profile.email;
         });
       }
+      await _loadDashboard(); // chain: _role and CompanyContextService now ready
     } catch (_) {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _loadDashboard() async {
+    if (!mounted) return;
+    setState(() {
+      _dashboardLoading = true;
+      _dashboardError = null;
+    });
+    try {
+      final companyId = CompanyContextService.instance.activeCompanyId;
+      final currentUserId = _authService.currentUser?.id ?? '';
+
+      // Single fetch — Dart-side filter for auditor scope (D-05/D-06)
+      final all = await _auditService.getAudits(companyId: companyId);
+      final audits = (AppRole.isSuperOrDev(_role) || AppRole.canAccessAdmin(_role))
+          ? all
+          : all.where((a) => a.auditorId == currentUserId).toList();
+
+      // KPI counts in Dart (D-01: total excludes cancelada, D-02: pending = emAndamento, D-03: overdue = atrasada)
+      final total = audits.where((a) => a.status != AuditStatus.cancelada).length;
+      final pending = audits.where((a) => a.status == AuditStatus.emAndamento).length;
+      final overdue = audits.where((a) => a.status == AuditStatus.atrasada).length;
+
+      // Open actions — fallback 0 until Phase 8 creates corrective_actions table (D-04)
+      final openActions = await _dashboardService.getOpenActionsCount(companyId);
+
+      // Companies count — superuser/dev only (D-07: isSuperOrDev, NOT canAccessAdmin)
+      int companiesCount = 0;
+      if (AppRole.isSuperOrDev(_role)) {
+        companiesCount = await _dashboardService.getCompaniesCount();
+      }
+
+      // Chart data aggregation (concluida audits only, grouped by template, sorted best-first)
+      final chartData = _buildChartData(audits);
+
+      if (mounted) {
+        setState(() {
+          _totalAudits = total;
+          _pendingAudits = pending;
+          _overdueAudits = overdue;
+          _openActions = openActions;
+          _companiesCount = companiesCount;
+          _chartData = chartData;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _dashboardError =
+            'Erro ao carregar dashboard. Puxe a tela para baixo para tentar novamente.');
+      }
+    } finally {
+      if (mounted) setState(() => _dashboardLoading = false);
+    }
+  }
+
+  List<_TemplateConformity> _buildChartData(List<Audit> audits) {
+    final Map<String, List<double>> byTemplate = {};
+    for (final a in audits) {
+      if (a.status == AuditStatus.concluida && a.conformityPercent != null) {
+        byTemplate.putIfAbsent(a.templateName, () => []).add(a.conformityPercent!);
+      }
+    }
+    return byTemplate.entries.map((e) {
+      final avg = e.value.reduce((a, b) => a + b) / e.value.length;
+      return _TemplateConformity(e.key, avg);
+    }).toList()
+      ..sort((a, b) => b.avgConformity.compareTo(a.avgConformity));
   }
 
   Future<void> _logout() async {
@@ -401,7 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
             height: 40,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 20),
           ),
@@ -431,4 +514,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+/// Dados de conformidade média por template para o gráfico de barras.
+class _TemplateConformity {
+  final String templateName;
+  final double avgConformity; // 0.0–100.0
+
+  const _TemplateConformity(this.templateName, this.avgConformity);
 }
