@@ -40,7 +40,7 @@ Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencios
 
 ### Active
 
-- [ ] Dashboard com indicadores: total de auditorias, pendentes, ações em aberto
+- [x] Dashboard com indicadores: total de auditorias, pendentes, ações em aberto — Validated in Phase 7: real KPIs, pull-to-refresh, fl_chart conformity bar chart, role-scoped (auditor vê apenas suas auditorias)
 - [ ] Menu flutuante FAB com navegação animada nas telas principais
 - [ ] Tela de relatórios com filtros por data e template, exibição em lista/gráfico
 - [ ] Tela de ações corretivas com status (aberta, em andamento, concluída) e filtros
@@ -97,4 +97,4 @@ Este documento evolui a cada transição de fase e milestone.
 4. Atualizar Context com estado atual
 
 ---
-*Last updated: 2026-04-23 — Phase 06 complete (TMPL-01 ordering fix, TMPL-02 drag & drop reorder)*
+*Last updated: 2026-04-25 — Phase 07 complete (DASH-01 real KPIs scoped por empresa, DASH-02 pull-to-refresh, DASH-03 fl_chart conformity bar chart)*
