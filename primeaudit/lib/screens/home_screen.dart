@@ -339,110 +339,205 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDashboard() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Saudação
-          Text(
-            _name.isNotEmpty
-                ? 'Olá, ${_name.split(' ').first}!'
-                : 'Bem-vindo!',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.of(context).textPrimary,
+    return RefreshIndicator(
+      onRefresh: _loadDashboard,
+      color: AppColors.primary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Saudação
+            Text(
+              _name.isNotEmpty
+                  ? 'Olá, ${_name.split(' ').first}!'
+                  : 'Bem-vindo!',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.of(context).textPrimary,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            _roleLabel(),
-            style: TextStyle(
-                fontSize: 13, color: AppTheme.of(context).textSecondary),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 4),
+            Text(
+              _roleLabel(),
+              style: TextStyle(
+                  fontSize: 13, color: AppTheme.of(context).textSecondary),
+            ),
+            const SizedBox(height: 24),
 
-          // Cards de resumo (placeholders)
-          Row(
-            children: [
-              Expanded(
-                child: _summaryCard(
-                  icon: Icons.assignment_rounded,
-                  label: 'Auditorias',
-                  value: '—',
-                  color: AppColors.accent,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _summaryCard(
-                  icon: Icons.check_circle_rounded,
-                  label: 'Concluídas',
-                  value: '—',
-                  color: Colors.green,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _summaryCard(
-                  icon: Icons.pending_rounded,
-                  label: 'Em andamento',
-                  value: '—',
-                  color: Colors.orange,
-                ),
-              ),
-              const SizedBox(width: 12),
-              if (AppRole.canAccessAdmin(_role))
+            // Linha 1: Total + Pendentes
+            Row(
+              children: [
                 Expanded(
                   child: _summaryCard(
-                    icon: Icons.business_rounded,
-                    label: 'Empresas',
-                    value: '—',
-                    color: Colors.purple,
+                    icon: Icons.assignment_rounded,
+                    label: 'Total',
+                    value: _dashboardLoading ? '...' : '$_totalAudits',
+                    color: AppColors.accent,
                   ),
-                )
-              else
-                const Expanded(child: SizedBox()),
-            ],
-          ),
-          const SizedBox(height: 28),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _summaryCard(
+                    icon: Icons.pending_rounded,
+                    label: 'Pendentes',
+                    value: _dashboardLoading ? '...' : '$_pendingAudits',
+                    color: Colors.orange,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
 
-          // Atividade recente
-          Text(
-            'Atividade recente',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.of(context).textPrimary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 40),
-            decoration: BoxDecoration(
-              color: AppTheme.of(context).surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.of(context).divider),
-            ),
-            child: Column(
+            // Linha 2: Atrasadas + Ações abertas (ou Empresas para superuser/dev)
+            Row(
               children: [
-                Icon(Icons.inbox_rounded, size: 40, color: Colors.grey[300]),
-                const SizedBox(height: 8),
-                Text(
-                  'Nenhuma atividade recente',
+                Expanded(
+                  child: _summaryCard(
+                    icon: Icons.warning_rounded,
+                    label: 'Atrasadas',
+                    value: _dashboardLoading ? '...' : '$_overdueAudits',
+                    color: AppColors.error,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // D-07: isSuperOrDev (NOT canAccessAdmin) for Empresas card
+                Expanded(
+                  child: AppRole.isSuperOrDev(_role)
+                      ? _summaryCard(
+                          icon: Icons.business_rounded,
+                          label: 'Empresas',
+                          value: _dashboardLoading ? '...' : '$_companiesCount',
+                          color: Colors.purple,
+                        )
+                      : _summaryCard(
+                          // D-04: always render, value 0 until Phase 8 creates corrective_actions
+                          icon: Icons.task_alt_rounded,
+                          label: 'Ações abertas',
+                          value: _dashboardLoading ? '...' : '$_openActions',
+                          color: Colors.teal,
+                        ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Gráfico de conformidade por template (DASH-03)
+            if (_dashboardError != null) ...[
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: AppTheme.of(context).surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.of(context).divider),
+                ),
+                child: Text(
+                  _dashboardError!,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                       color: AppTheme.of(context).textSecondary, fontSize: 13),
+                ),
+              ),
+            ] else ...[
+              Text(
+                'Conformidade por template',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.of(context).textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildConformityChart(_chartData),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConformityChart(List<_TemplateConformity> data) {
+    if (data.isEmpty) {
+      return Container(
+        height: 120,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppTheme.of(context).surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.of(context).divider),
+        ),
+        child: Text(
+          'Nenhuma auditoria concluída para exibir',
+          style: TextStyle(
+              color: AppTheme.of(context).textSecondary, fontSize: 13),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: data.length * 48.0 + 40,
+      child: BarChart(
+        BarChartData(
+          rotationQuarterTurns: 1,
+          maxY: 100,
+          barGroups: List.generate(
+            data.length,
+            (i) => BarChartGroupData(
+              x: i,
+              barRods: [
+                BarChartRodData(
+                  toY: data[i].avgConformity,
+                  color: AppColors.primary,
+                  width: 20,
+                  borderRadius: BorderRadius.circular(4),
                 ),
               ],
             ),
           ),
-        ],
+          titlesData: FlTitlesData(
+            // With rotationQuarterTurns:1, the left axis becomes the bar labels axis
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 120,
+                getTitlesWidget: (value, meta) {
+                  final idx = value.toInt();
+                  if (idx < 0 || idx >= data.length) {
+                    return const SizedBox.shrink();
+                  }
+                  return Text(
+                    data[idx].templateName,
+                    style: TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.of(context).textSecondary),
+                    overflow: TextOverflow.ellipsis,
+                  );
+                },
+              ),
+            ),
+            rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false)),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) => Text(
+                  '${value.toInt()}%',
+                  style: TextStyle(
+                      fontSize: 13,
+                      color: AppTheme.of(context).textSecondary),
+                ),
+              ),
+            ),
+          ),
+          borderData: FlBorderData(show: false),
+          gridData: const FlGridData(show: false),
+        ),
       ),
     );
   }
