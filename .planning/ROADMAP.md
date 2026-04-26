@@ -55,7 +55,11 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
   2. A tela de ações corretivas exibe a lista com status atual, com filtros por responsável e por status funcionando
   3. O status de uma ação segue o fluxo: Admin pode mover para qualquer estado; Responsável pode mover apenas para em_andamento e em_avaliacao; Auditor pode mover apenas para aprovada e rejeitada — transições não permitidas são bloqueadas na UI
   4. Um badge com a contagem de ações abertas é visível na navegação principal e atualiza quando o estado muda
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 08-01-PLAN.md — Wave 1: Migration SQL (corrective_actions + RLS) + supabase db push [BLOCKING] + CorrectiveAction model + CorrectiveActionService (CRUD + static isNonConforming + static canTransitionTo) + unit test stubs
+  - [ ] 08-02-PLAN.md — Wave 2: CreateCorrectiveActionScreen (form D-02/D-03) + audit_execution_screen.dart icon injection (D-01) + UserService.getByCompany + DashboardService fix
+  - [ ] 08-03-PLAN.md — Wave 3: CorrectiveActionsScreen list with FilterChip status filters + responsible dropdown + RefreshIndicator + empty/error states (ACT-01)
+  - [ ] 08-04-PLAN.md — Wave 4: CorrectiveActionDetailScreen (ACT-03 RBAC transitions) + home_screen.dart badge + drawer item (ACT-04) + full test suite
 **UI hint**: yes
 
 ### Phase 9: Images
@@ -112,7 +116,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 |-------|----------------|--------|-----------|
 | 6. Templates | 0/2 | Not started | - |
 | 7. Dashboard | 2/2 | Complete | 2026-04-25 |
-| 8. Corrective Actions | 0/? | Not started | - |
+| 8. Corrective Actions | 0/4 | Planned | - |
 | 9. Images | 0/? | Not started | - |
 | 10. Reports | 0/? | Not started | - |
 | 11. Notifications | 0/? | Not started | - |
