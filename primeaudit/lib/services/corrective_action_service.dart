@@ -1,0 +1,122 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/corrective_action.dart';
+import '../core/app_roles.dart';
+
+// Sem try/catch dentro do service — callers (screens) são responsáveis pelo tratamento de erros.
+class CorrectiveActionService {
+  final _client = Supabase.instance.client;
+
+  Future<List<CorrectiveAction>> getActions({
+    required String? companyId,
+    String? statusFilter,
+    String? responsibleFilter,
+  }) async {
+    // profiles!responsible_user_id(...) desambigua FK — múltiplas FKs para profiles
+    var query = _client
+        .from('corrective_actions')
+        .select('*, profiles!responsible_user_id(full_name), audits(title)');
+    if (companyId != null) query = query.eq('company_id', companyId);
+    if (statusFilter != null) query = query.eq('status', statusFilter);
+    if (responsibleFilter != null) {
+      query = query.eq('responsible_user_id', responsibleFilter);
+    }
+    final data = await query.order('created_at', ascending: false);
+    return (data as List).map((e) => CorrectiveAction.fromMap(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<void> createAction({
+    required String auditId,
+    required String templateItemId,
+    required String title,
+    String? description,
+    required String responsibleUserId,
+    required DateTime dueDate,
+    required String companyId,
+    required String createdBy,
+  }) async {
+    await _client.from('corrective_actions').insert({
+      'audit_id': auditId,
+      'template_item_id': templateItemId,
+      'title': title,
+      'description': description,
+      'responsible_user_id': responsibleUserId,
+      'due_date': dueDate.toIso8601String().substring(0, 10),
+      'status': 'aberta',
+      'company_id': companyId,
+      'created_by': createdBy,
+    });
+  }
+
+  Future<void> updateStatus(String id, String newStatus) async {
+    await _client
+        .from('corrective_actions')
+        .update({
+          'status': newStatus,
+          'updated_at': DateTime.now().toIso8601String(),
+        })
+        .eq('id', id);
+  }
+
+  Future<int> getOpenActionsCount(String? companyId) async {
+    var query = _client
+        .from('corrective_actions')
+        .select('id')
+        .inFilter('status', ['aberta', 'em_andamento', 'em_avaliacao']);
+    if (companyId != null) query = query.eq('company_id', companyId);
+    final data = await query;
+    return (data as List).length;
+  }
+
+  /// Determina se uma resposta para um item é não-conforme.
+  /// Estático para testabilidade sem instância do Supabase client.
+  static bool isNonConforming(String responseType, String? answer) {
+    if (answer == null || answer.isEmpty) return false;
+    switch (responseType) {
+      case 'ok_nok':
+        return answer == 'nok';
+      case 'yes_no':
+        return answer == 'no';
+      case 'scale_1_5':
+        return (int.tryParse(answer) ?? 99) <= 2;
+      case 'percentage':
+        return (double.tryParse(answer) ?? 100.0) < 50.0;
+      case 'text':
+        return answer.isNotEmpty;
+      case 'selection':
+        return answer.isNotEmpty;
+      default:
+        return false;
+    }
+  }
+
+  /// Determina se o usuário (role + userId) pode transicionar a ação para newStatus.
+  /// Estático para testabilidade — ver RBAC matrix em 08-UI-SPEC.md.
+  static bool canTransitionTo({
+    required String newStatus,
+    required CorrectiveAction action,
+    required String role,
+    required String userId,
+  }) {
+    if (AppRole.canAccessAdmin(role) || AppRole.isSuperOrDev(role)) return true;
+
+    final isResponsible = action.responsibleUserId == userId;
+
+    switch (newStatus) {
+      case 'em_andamento':
+        return isResponsible &&
+            (action.status == CorrectiveActionStatus.aberta ||
+                action.status == CorrectiveActionStatus.rejeitada);
+      case 'em_avaliacao':
+        return isResponsible && action.status == CorrectiveActionStatus.emAndamento;
+      case 'aprovada':
+      case 'rejeitada':
+        return !isResponsible &&
+            role == AppRole.auditor &&
+            action.status == CorrectiveActionStatus.emAvaliacao;
+      case 'cancelada':
+        return false;
+      default:
+        return false;
+    }
+  }
+}
