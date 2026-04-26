@@ -12,6 +12,8 @@ import '../services/dashboard_service.dart';
 import '../services/user_service.dart';
 import 'admin/admin_screen.dart';
 import 'audits_screen.dart';
+import 'corrective_actions_screen.dart';
+import '../services/corrective_action_service.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
 import 'templates/audit_types_screen.dart';
@@ -29,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _userService = UserService();
   final _auditService = AuditService();
   final _dashboardService = DashboardService();
+  final _correctiveActionService = CorrectiveActionService();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String _role = '';
@@ -95,8 +98,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final pending = audits.where((a) => a.status == AuditStatus.emAndamento).length;
       final overdue = audits.where((a) => a.status == AuditStatus.atrasada).length;
 
-      // Open actions — fallback 0 until Phase 8 creates corrective_actions table (D-04)
-      final openActions = await _dashboardService.getOpenActionsCount(companyId);
+      // Open actions — aberta + em_andamento + em_avaliacao (Phase 8)
+      final openActions = await _correctiveActionService.getOpenActionsCount(companyId);
 
       // Companies count — superuser/dev only (D-07: isSuperOrDev, NOT canAccessAdmin)
       int companiesCount = 0;
@@ -282,6 +285,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   )),
                 ),
                 _drawerItem(
+                  icon: Icons.assignment_late_outlined,
+                  title: 'Ações Corretivas',
+                  badgeCount: _openActions,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(
+                          builder: (_) => CorrectiveActionsScreen(
+                            currentUserId:
+                                _authService.currentUser?.id ?? '',
+                            currentUserRole: _role,
+                          ),
+                        ))
+                        .then((_) => _loadDashboard());
+                  },
+                ),
+                _drawerItem(
                   icon: Icons.bar_chart_rounded,
                   title: 'Relatórios',
                   onTap: () => Navigator.of(context).pop(), // próxima tela
@@ -320,11 +340,19 @@ class _HomeScreenState extends State<HomeScreen> {
     required String title,
     required VoidCallback onTap,
     Color? color,
+    int badgeCount = 0,
   }) {
     final itemColor = color ?? AppTheme.of(context).textPrimary;
+    Widget iconWidget = Icon(icon, color: itemColor, size: 22);
+    if (badgeCount > 0) {
+      iconWidget = Badge(
+        label: Text('$badgeCount'),
+        child: iconWidget,
+      );
+    }
     return ListTile(
       onTap: onTap,
-      leading: Icon(icon, color: itemColor, size: 22),
+      leading: iconWidget,
       title: Text(
         title,
         style: TextStyle(
