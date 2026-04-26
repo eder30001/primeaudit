@@ -33,6 +33,16 @@ class UserService {
     return (data as List).map((e) => AppUser.fromMap(e)).toList();
   }
 
+  Future<List<AppUser>> getByCompany(String companyId) async {
+    final data = await _client
+        .from('profiles')
+        .select('*, companies(name)')
+        .eq('company_id', companyId)
+        .eq('active', true)
+        .order('full_name');
+    return (data as List).map((e) => AppUser.fromMap(e as Map<String, dynamic>)).toList();
+  }
+
   Future<void> updateRole(String userId, String role) async {
     await _client
         .from('profiles')

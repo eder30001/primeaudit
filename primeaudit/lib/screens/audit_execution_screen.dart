@@ -9,6 +9,8 @@ import '../services/audit_answer_service.dart';
 import '../services/audit_service.dart';
 import '../services/audit_template_service.dart';
 import 'pending_save.dart';
+import 'create_corrective_action_screen.dart';
+import '../services/corrective_action_service.dart';
 
 // Alias interno: usamos `_PendingSave` na tela (convenção de classe privada
 // do projeto para tipos usados apenas dentro deste arquivo), mas a classe
@@ -591,6 +593,19 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
                 onAnswer: _onAnswer,
                 onObservation: _onObservation,
                 theme: t,
+                audit: widget.audit,
+                onCreateAction: _isReadOnly
+                    ? null
+                    : (item) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => CreateCorrectiveActionScreen(
+                              audit: widget.audit,
+                              item: item,
+                            ),
+                          ),
+                        );
+                      },
               ),
             ),
           ),
@@ -785,6 +800,8 @@ class _SectionBlock extends StatelessWidget {
   final void Function(String itemId, String response) onAnswer;
   final void Function(String itemId, String obs) onObservation;
   final AppTheme theme;
+  final Audit? audit;
+  final void Function(TemplateItem)? onCreateAction;
 
   const _SectionBlock({
     required this.section,
@@ -795,6 +812,8 @@ class _SectionBlock extends StatelessWidget {
     required this.onAnswer,
     required this.onObservation,
     required this.theme,
+    this.audit,
+    this.onCreateAction,
   });
 
   @override
@@ -845,6 +864,8 @@ class _SectionBlock extends StatelessWidget {
           onAnswer: (r) => onAnswer(item.id, r),
           onObservation: (o) => onObservation(item.id, o),
           theme: t,
+          audit: audit,
+          onCreateAction: onCreateAction,
         )),
 
         const SizedBox(height: 4),
@@ -865,6 +886,8 @@ class _ItemCard extends StatefulWidget {
   final void Function(String) onAnswer;
   final void Function(String) onObservation;
   final AppTheme theme;
+  final Audit? audit;
+  final void Function(TemplateItem)? onCreateAction;
 
   const _ItemCard({
     required this.item,
@@ -875,6 +898,8 @@ class _ItemCard extends StatefulWidget {
     required this.onAnswer,
     required this.onObservation,
     required this.theme,
+    this.audit,
+    this.onCreateAction,
   });
 
   @override
@@ -1028,6 +1053,28 @@ class _ItemCardState extends State<_ItemCard> {
                 ],
               ),
             ),
+            if (widget.onCreateAction != null &&
+                CorrectiveActionService.isNonConforming(
+                    widget.item.responseType, widget.answer) &&
+                !widget.readOnly) ...[
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () => widget.onCreateAction!(widget.item),
+                child: Row(
+                  children: [
+                    Icon(Icons.add_task_rounded,
+                        size: 16, color: AppColors.accent),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Criar ação corretiva',
+                      style:
+                          TextStyle(fontSize: 12, color: AppColors.accent),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             if (_showObs) ...[
               const SizedBox(height: 8),
               TextField(

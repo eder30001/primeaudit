@@ -7,23 +7,17 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class DashboardService {
   final _client = Supabase.instance.client;
 
-  /// Retorna o total de ações corretivas abertas da empresa.
-  /// Retorna 0 enquanto a tabela `corrective_actions` não existir (Phase 8).
-  /// Retorna 0 se [companyId] for null e a tabela existir (sem escopo).
+  /// Retorna o total de ações corretivas não-finalizadas da empresa.
   Future<int> getOpenActionsCount(String? companyId) async {
-    try {
-      var query = _client
-          .from('corrective_actions')
-          .select('id')
-          .eq('status', 'aberta');
-      if (companyId != null) {
-        query = query.eq('company_id', companyId);
-      }
-      final data = await query;
-      return (data as List).length;
-    } catch (_) {
-      return 0; // tabela corrective_actions ainda não existe (Phase 8)
+    var query = _client
+        .from('corrective_actions')
+        .select('id')
+        .inFilter('status', ['aberta', 'em_andamento', 'em_avaliacao']);
+    if (companyId != null) {
+      query = query.eq('company_id', companyId);
     }
+    final data = await query;
+    return (data as List).length;
   }
 
   /// Retorna o total de empresas cadastradas.
