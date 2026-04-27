@@ -47,14 +47,16 @@ class CorrectiveActionService {
     });
   }
 
-  Future<void> updateStatus(String id, String newStatus) async {
-    await _client
-        .from('corrective_actions')
-        .update({
-          'status': newStatus,
-          'updated_at': DateTime.now().toIso8601String(),
-        })
-        .eq('id', id);
+  Future<void> updateStatus(String id, String newStatus,
+      {String? resolutionNotes}) async {
+    final updates = <String, dynamic>{
+      'status': newStatus,
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    if (resolutionNotes != null && resolutionNotes.isNotEmpty) {
+      updates['resolution_notes'] = resolutionNotes;
+    }
+    await _client.from('corrective_actions').update(updates).eq('id', id);
   }
 
   Future<int> getOpenActionsCount(String? companyId) async {

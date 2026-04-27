@@ -78,10 +78,11 @@ class _AuditTypesScreenState extends State<AuditTypesScreen> {
               bottom: MediaQuery.of(ctx).viewInsets.bottom + 24),
           child: Form(
             key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 Text(editing != null ? 'Editar Tipo' : 'Novo Tipo de Auditoria',
                     style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
@@ -173,6 +174,7 @@ class _AuditTypesScreenState extends State<AuditTypesScreen> {
                 ),
               ],
             ),
+            ),  // SingleChildScrollView
           ),
         ),
       ),

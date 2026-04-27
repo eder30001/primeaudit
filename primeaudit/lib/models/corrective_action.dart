@@ -94,6 +94,7 @@ class CorrectiveAction {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? linkedAuditTitle;
+  final String? resolutionNotes;
 
   const CorrectiveAction({
     required this.id,
@@ -110,6 +111,7 @@ class CorrectiveAction {
     required this.createdAt,
     required this.updatedAt,
     this.linkedAuditTitle,
+    this.resolutionNotes,
   });
 
   factory CorrectiveAction.fromMap(Map<String, dynamic> map) {
@@ -128,6 +130,7 @@ class CorrectiveAction {
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
       linkedAuditTitle: (map['audits'] as Map<String, dynamic>?)?['title'] as String?,
+      resolutionNotes: map['resolution_notes'] as String?,
     );
   }
 

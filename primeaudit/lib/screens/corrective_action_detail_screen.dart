@@ -62,8 +62,54 @@ class _CorrectiveActionDetailScreenState
     );
   }
 
+  Future<String?> _askResolutionNotes() async {
+    final ctrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Ação tomada'),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: ctrl,
+            autofocus: true,
+            maxLines: 4,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(
+              hintText: 'Descreva o que foi feito para resolver o problema…',
+              border: OutlineInputBorder(),
+            ),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'Campo obrigatório' : null,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(ctx, ctrl.text.trim());
+              }
+            },
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _doTransition(String newStatus) async {
-    if (newStatus == 'cancelada') {
+    String? resolutionNotes;
+
+    if (newStatus == 'em_avaliacao') {
+      resolutionNotes = await _askResolutionNotes();
+      if (resolutionNotes == null) return; // usuário cancelou
+    } else if (newStatus == 'cancelada') {
       final confirmed = await _confirmTransition(
         'Cancelar ação corretiva',
         'Esta ação será marcada como cancelada. Confirma?',
@@ -79,7 +125,8 @@ class _CorrectiveActionDetailScreenState
 
     setState(() => _isTransitioning = true);
     try {
-      await _service.updateStatus(_action.id, newStatus);
+      await _service.updateStatus(_action.id, newStatus,
+          resolutionNotes: resolutionNotes);
       if (!mounted) return;
       _snack(
           'Status atualizado para ${CorrectiveActionStatus.fromDb(newStatus).label}');
@@ -165,6 +212,13 @@ class _CorrectiveActionDetailScreenState
               _InfoRow(
                   label: 'Descrição / Observação',
                   value: a.description!,
+                  theme: t),
+            ],
+            if (a.resolutionNotes != null && a.resolutionNotes!.isNotEmpty) ...[
+              _divider(t),
+              _InfoRow(
+                  label: 'Ação tomada',
+                  value: a.resolutionNotes!,
                   theme: t),
             ],
             if (a.linkedAuditTitle != null) ...[

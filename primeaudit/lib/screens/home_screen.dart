@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/app_colors.dart';
 import '../core/app_roles.dart';
 import '../core/app_theme.dart';
@@ -43,9 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _overdueAudits = 0;
   int _openActions = 0;
   int _companiesCount = 0;
-  List<_TemplateConformity> _chartData = [];
   bool _dashboardLoading = false;
-  String? _dashboardError;
 
   @override
   void initState() {
@@ -79,10 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadDashboard() async {
     if (!mounted) return;
-    setState(() {
-      _dashboardLoading = true;
-      _dashboardError = null;
-    });
+    setState(() => _dashboardLoading = true);
     try {
       final companyId = CompanyContextService.instance.activeCompanyId;
       final currentUserId = _authService.currentUser?.id ?? '';
@@ -107,9 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
         companiesCount = await _dashboardService.getCompaniesCount();
       }
 
-      // Chart data aggregation (concluida audits only, grouped by template, sorted best-first)
-      final chartData = _buildChartData(audits);
-
       if (mounted) {
         setState(() {
           _totalAudits = total;
@@ -117,31 +107,12 @@ class _HomeScreenState extends State<HomeScreen> {
           _overdueAudits = overdue;
           _openActions = openActions;
           _companiesCount = companiesCount;
-          _chartData = chartData;
         });
       }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _dashboardError =
-            'Erro ao carregar dashboard. Puxe a tela para baixo para tentar novamente.');
-      }
+    } catch (_) {
     } finally {
       if (mounted) setState(() => _dashboardLoading = false);
     }
-  }
-
-  List<_TemplateConformity> _buildChartData(List<Audit> audits) {
-    final Map<String, List<double>> byTemplate = {};
-    for (final a in audits) {
-      if (a.status == AuditStatus.concluida && a.conformityPercent != null) {
-        byTemplate.putIfAbsent(a.templateName, () => []).add(a.conformityPercent!);
-      }
-    }
-    return byTemplate.entries.map((e) {
-      final avg = e.value.reduce((a, b) => a + b) / e.value.length;
-      return _TemplateConformity(e.key, avg);
-    }).toList()
-      ..sort((a, b) => b.avgConformity.compareTo(a.avgConformity));
   }
 
   Future<void> _logout() async {
@@ -450,121 +421,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-
-            // Gráfico de conformidade por template (DASH-03)
-            if (_dashboardError != null) ...[
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: AppTheme.of(context).surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.of(context).divider),
-                ),
-                child: Text(
-                  _dashboardError!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: AppTheme.of(context).textSecondary, fontSize: 13),
-                ),
-              ),
-            ] else ...[
-              Text(
-                'Conformidade por template',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.of(context).textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              _buildConformityChart(_chartData),
-            ],
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildConformityChart(List<_TemplateConformity> data) {
-    if (data.isEmpty) {
-      return Container(
-        height: 120,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppTheme.of(context).surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.of(context).divider),
-        ),
-        child: Text(
-          'Nenhuma auditoria concluída para exibir',
-          style: TextStyle(
-              color: AppTheme.of(context).textSecondary, fontSize: 13),
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: data.length * 48.0 + 40,
-      child: BarChart(
-        BarChartData(
-          rotationQuarterTurns: 1,
-          maxY: 100,
-          barGroups: List.generate(
-            data.length,
-            (i) => BarChartGroupData(
-              x: i,
-              barRods: [
-                BarChartRodData(
-                  toY: data[i].avgConformity,
-                  color: AppColors.primary,
-                  width: 20,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ],
-            ),
-          ),
-          titlesData: FlTitlesData(
-            // With rotationQuarterTurns:1, the left axis becomes the bar labels axis
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 120,
-                getTitlesWidget: (value, meta) {
-                  final idx = value.toInt();
-                  if (idx < 0 || idx >= data.length) {
-                    return const SizedBox.shrink();
-                  }
-                  return Text(
-                    data[idx].templateName,
-                    style: TextStyle(
-                        fontSize: 13,
-                        color: AppTheme.of(context).textSecondary),
-                    overflow: TextOverflow.ellipsis,
-                  );
-                },
-              ),
-            ),
-            rightTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false)),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) => Text(
-                  '${value.toInt()}%',
-                  style: TextStyle(
-                      fontSize: 13,
-                      color: AppTheme.of(context).textSecondary),
-                ),
-              ),
-            ),
-          ),
-          borderData: FlBorderData(show: false),
-          gridData: const FlGridData(show: false),
         ),
       ),
     );
@@ -639,10 +496,3 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-/// Dados de conformidade média por template para o gráfico de barras.
-class _TemplateConformity {
-  final String templateName;
-  final double avgConformity; // 0.0–100.0
-
-  const _TemplateConformity(this.templateName, this.avgConformity);
-}
