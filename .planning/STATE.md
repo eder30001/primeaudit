@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Features & UX
 status: ready
-stopped_at: Phase 9 planned — ready to execute (3 plans, 3 waves)
-last_updated: "2026-04-27T00:00:00.000Z"
+stopped_at: Phase 8 Plan 01 complete — Wave 1 foundation (migration + model + service + 59 tests) verified
+last_updated: "2026-04-27T18:52:00Z"
 last_activity: 2026-04-27
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 11
-  completed_plans: 4
-  percent: 29
+  completed_plans: 5
+  percent: 36
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-18)
 
 ## Current Position
 
-Phase: 9
-Plan: Ready to execute (3 plans, 3 waves)
-Status: Phase 9 planned — ready to execute
+Phase: 8
+Plan: 01 complete — continue with 08-02
+Status: Phase 8 Plan 01 verified complete
 Last activity: 2026-04-27
 
-Progress: [██░░░░░░░░] 29%
+Progress: [███░░░░░░░] 36%
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Progress: [██░░░░░░░░] 29%
 ### Decisions (v1.1)
 
 - Phase 8 entrega a migration de corrective_actions; Phase 7 (Dashboard) depende dela para o KPI de ações abertas — executar Phase 7 após migration de Phase 8 estar aplicada, ou planejar as duas em paralelo com Phase 7 usando valor zero como fallback
+- canTransitionTo usa createdBy (criador) como avaliador, não "qualquer auditor" — criador avalia a ação que criou; responsável não pode avaliar a própria ação (Phase 8 RBAC refinement)
 - NotificationService deve ser singleton (padrão CompanyContextService) — única exceção ao padrão de serviço instanciado por tela, necessário para manter unreadCount vivo entre navegações
 - Upload de imagens é fluxo independente de _saveAnswer — falha de upload não bloqueia finalização de auditoria (core value)
 - fl_chart adicionado em Phase 7 (DASH-03) e reaproveitado em Phase 10 (REP-04) — não adicionar duas vezes ao pubspec
@@ -81,7 +82,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-25T00:00:00.000Z
-Stopped at: Phase 7 complete — human UAT approved
-Resume file: .planning/phases/07-dashboard/07-VERIFICATION.md
-Next action: `/gsd-discuss-phase 8` or `/gsd-plan-phase 8`
+Last session: 2026-04-27T18:52:00Z
+Stopped at: Phase 8 Plan 01 complete — Wave 1 verified (migration + model + service + 59 tests)
+Resume file: .planning/phases/08-corrective-actions/08-01-SUMMARY.md
+Next action: Execute 08-02-PLAN.md (Wave 2: CreateCorrectiveActionScreen + audit_execution_screen icon)
