@@ -29,7 +29,6 @@ class _CreateCorrectiveActionScreenState
   final _service = CorrectiveActionService();
   final _userService = UserService();
   final _formKey = GlobalKey<FormState>();
-  final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
 
   List<AppUser> _users = [];
@@ -47,7 +46,6 @@ class _CreateCorrectiveActionScreenState
 
   @override
   void dispose() {
-    _titleCtrl.dispose();
     _descCtrl.dispose();
     super.dispose();
   }
@@ -108,7 +106,7 @@ class _CreateCorrectiveActionScreenState
       await _service.createAction(
         auditId: widget.audit.id,
         templateItemId: widget.item.id,
-        title: _titleCtrl.text.trim(),
+        title: widget.item.question,
         description:
             _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
         responsibleUserId: _selectedUser!.id,
@@ -169,7 +167,7 @@ class _CreateCorrectiveActionScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Banner pergunta vinculada
+            // Pergunta vinculada (será o título da ação)
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -181,36 +179,19 @@ class _CreateCorrectiveActionScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Pergunta vinculada',
+                    'Título da ação (pergunta vinculada)',
                     style: TextStyle(fontSize: 12, color: t.textSecondary),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     widget.item.question,
-                    style: TextStyle(fontSize: 14, color: t.textPrimary),
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: t.textPrimary,
+                        fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-
-            // Título
-            TextFormField(
-              controller: _titleCtrl,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                labelText: 'Título',
-                hintText: 'Descreva brevemente o problema',
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide:
-                      const BorderSide(color: AppColors.accent, width: 1.5),
-                ),
-              ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'O título é obrigatório' : null,
             ),
             const SizedBox(height: 16),
 

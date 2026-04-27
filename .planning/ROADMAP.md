@@ -71,7 +71,10 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
   2. Miniaturas das fotos anexadas aparecem inline no card da pergunta, sem navegar para outra tela
   3. O auditor pode anexar mais de uma foto por pergunta e todas as miniaturas são exibidas
   4. Um upload com falha exibe indicador de erro no card da pergunta sem bloquear o salvamento das respostas
-**Plans**: TBD
+**Plans**: 3 plans
+  - [ ] 09-01-PLAN.md — Wave 1: Migration SQL (audit_item_images + RLS + bucket audit-images) + supabase db push [BLOCKING] + pubspec image_picker + AndroidManifest permissions
+  - [ ] 09-02-PLAN.md — Wave 2: AuditItemImage model + ImageService (uploadImage, getImages, getSignedUrl, deleteImage)
+  - [ ] 09-03-PLAN.md — Wave 3: _ImageStrip + _ThumbTile + _PickerSheet widgets + _ItemCard injection + _load() images fetch + human verify
 **UI hint**: yes
 
 ### Phase 10: Reports
@@ -117,7 +120,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 | 6. Templates | 0/2 | Not started | - |
 | 7. Dashboard | 2/2 | Complete | 2026-04-25 |
 | 8. Corrective Actions | 0/4 | Planned | - |
-| 9. Images | 0/? | Not started | - |
+| 9. Images | 0/3 | Planned | - |
 | 10. Reports | 0/? | Not started | - |
 | 11. Notifications | 0/? | Not started | - |
 | 12. Navigation Refactor | 0/? | Not started | - |
