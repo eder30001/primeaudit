@@ -58,7 +58,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 **Plans**: 4 plans
   - [x] 08-01-PLAN.md — Wave 1: Migration SQL (corrective_actions + RLS) + supabase db push [BLOCKING] + CorrectiveAction model + CorrectiveActionService (CRUD + static isNonConforming + static canTransitionTo) + unit test stubs
   - [x] 08-02-PLAN.md — Wave 2: CreateCorrectiveActionScreen (form D-02/D-03) + audit_execution_screen.dart icon injection (D-01) + UserService.getByCompany + DashboardService fix
-  - [ ] 08-03-PLAN.md — Wave 3: CorrectiveActionsScreen list with FilterChip status filters + responsible dropdown + RefreshIndicator + empty/error states (ACT-01)
+  - [x] 08-03-PLAN.md — Wave 3: CorrectiveActionsScreen list with FilterChip status filters + responsible dropdown + RefreshIndicator + empty/error states (ACT-01)
   - [ ] 08-04-PLAN.md — Wave 4: CorrectiveActionDetailScreen (ACT-03 RBAC transitions) + home_screen.dart badge + drawer item (ACT-04) + full test suite
 **UI hint**: yes
 
@@ -119,7 +119,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 |-------|----------------|--------|-----------|
 | 6. Templates | 0/2 | Not started | - |
 | 7. Dashboard | 2/2 | Complete | 2026-04-25 |
-| 8. Corrective Actions | 2/4 | In Progress | - |
+| 8. Corrective Actions | 3/4 | In Progress | - |
 | 9. Images | 0/3 | Planned | - |
 | 10. Reports | 0/? | Not started | - |
 | 11. Notifications | 0/? | Not started | - |
