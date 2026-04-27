@@ -932,6 +932,9 @@ class _NewAuditSheetState extends State<_NewAuditSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.fromLTRB(24, 20, 24, viewInset + 24),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
       child: _loadingData
           ? const SizedBox(
               height: 200,
@@ -940,7 +943,7 @@ class _NewAuditSheetState extends State<_NewAuditSheet> {
               ),
             )
           : Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Handle
@@ -994,7 +997,7 @@ class _NewAuditSheetState extends State<_NewAuditSheet> {
                 const SizedBox(height: 20),
 
                 // Conteúdo do passo
-                _buildStepContent(t),
+                Expanded(child: _buildStepContent(t)),
 
                 const SizedBox(height: 20),
 
@@ -1145,8 +1148,10 @@ class _SelectionStep<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = theme;
-    return Column(
-      children: options.map((opt) {
+    return ListView.builder(
+      itemCount: options.length,
+      itemBuilder: (_, i) {
+        final opt = options[i];
         final sel = _isSelected(opt);
         return GestureDetector(
           onTap: () => onSelect(opt),
@@ -1183,7 +1188,7 @@ class _SelectionStep<T> extends StatelessWidget {
             ),
           ),
         );
-      }).toList(),
+      },
     );
   }
 }
