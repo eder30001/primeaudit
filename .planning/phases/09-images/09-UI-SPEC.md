@@ -1,10 +1,11 @@
 ---
 phase: 9
 slug: images
-status: draft
+status: approved
 framework: flutter-material3
 design_system: AppTheme + AppColors (no shadcn — Flutter project)
 created: 2026-04-27
+reviewed_at: 2026-04-27T00:00:00Z
 ---
 
 # Phase 9 — UI Design Contract: Images
@@ -39,16 +40,19 @@ Declared values (multiples of 4 only — Flutter `EdgeInsets` / `SizedBox`):
 | xs | 4dp | `SizedBox(width/height: 4)` | Icon gaps, thumbnail gaps |
 | sm | 8dp | `SizedBox(width/height: 8)` | Between camera button and thumbnail strip |
 | md | 12dp | `SizedBox(width/height: 12)` | Row separator inside `_ItemCard` (matches existing 12dp gaps in card) |
-| base | 14dp | `EdgeInsets.all(14)` | Card internal padding (existing — do not change) |
 | lg | 16dp | `EdgeInsets.symmetric(horizontal: 16)` | List padding (existing) |
 | xl | 24dp | `SizedBox(height: 24)` | Not used in Phase 9 |
 
 Thumbnail strip internal spacing: `SizedBox(width: 4)` between thumbnails (xs = 4dp).
 
-Exceptions:
-- Thumbnail touch target: minimum 72 × 72dp (larger than 4-grid multiple to meet Android touch target guidelines for image preview)
-- Camera button touch target: minimum 44 × 44dp (Android minimum tap target)
-- Upload error badge: 20 × 20dp (centered overlay on thumbnail, not on 4-grid but constrained by thumbnail size)
+### Spacing Exceptions
+
+| Element | Visual Size | Touch Target | Mitigation |
+|---------|------------|--------------|------------|
+| Thumbnail | 72 × 72dp | 72 × 72dp | Larger than 4-grid multiple; meets Android touch target guidelines for image preview |
+| Camera button | 44 × 44dp | 44 × 44dp | Meets Android minimum tap target |
+| Upload error badge | 20 × 20dp overlay | n/a | Centered overlay on thumbnail; not interactive — tap target is the full 72dp tile |
+| Remove badge (`×` button) | 20 × 20dp visual | 44 × 44dp | `GestureDetector` wraps a `SizedBox(width: 44, height: 44)` as invisible hit area; 20dp visual badge centered inside it via `Center` widget |
 
 ---
 
@@ -60,10 +64,11 @@ All sizes are sourced from existing `_ItemCard` typography — no new sizes intr
 |------|-------------------|------|--------|-------------|-------|
 | Body | `TextStyle(fontSize: 13)` | 13sp | w500 | 1.4 | Question text (existing — do not change) |
 | Label | `TextStyle(fontSize: 12)` | 12sp | normal (w400) | 1.0 | "Adicionar foto" text next to camera icon; photo count label |
-| Caption | `TextStyle(fontSize: 11)` | 11sp | w600 | 1.0 | Upload state label ("Enviando…", "Erro") — matches existing badge style |
 | Hint | `TextStyle(fontSize: 12, color: t.textSecondary)` | 12sp | normal | 1.0 | Observation hint (existing — do not change) |
 
 Only **2 weights** in use for Phase 9 additions: `FontWeight.normal` (w400) and `FontWeight.w600`.
+
+> Upload states (uploading spinner, error icon) use icon/spinner visuals only — no text label is needed on the 72dp tile, so the 11sp caption size is not required.
 
 ---
 
@@ -144,27 +149,39 @@ Row(
 | State | Visual |
 |-------|--------|
 | `uploading` | `Image.file` dimmed (opacity 0.5) + centered `CircularProgressIndicator(strokeWidth: 2, color: AppColors.accent)` (size 24dp) |
-| `uploaded` | `Image.network` (signed URL) full opacity + `IconButton` remove (top-right, 20dp) shown only if `!readOnly` |
+| `uploaded` | `Image.network` (signed URL) full opacity + remove badge (top-right) shown only if `!readOnly` |
 | `error` | `Image.file` dimmed (opacity 0.4) + centered `Icon(Icons.error_rounded, color: AppColors.error, size: 20)` + `GestureDetector` on full tile to retry |
 
 **Remove button (non-read-only, uploaded state only):**
 
+The visual badge is 20 × 20dp. The interactive tap area is 44 × 44dp via a `GestureDetector` wrapping an invisible `SizedBox`. The 20dp visual badge is centered inside that hit area.
+
 ```
 Positioned(
-  top: 2, right: 2,
-  child: GestureDetector(
-    onTap: _removeImage,
-    child: Container(
-      width: 20, height: 20,
-      decoration: BoxDecoration(
-        color: AppColors.error,
-        borderRadius: BorderRadius.circular(10),
+  top: 0, right: 0,
+  child: Semantics(
+    label: 'Remover foto',
+    child: GestureDetector(
+      onTap: _removeImage,
+      child: SizedBox(
+        width: 44, height: 44,
+        child: Center(
+          child: Container(
+            width: 20, height: 20,
+            decoration: BoxDecoration(
+              color: AppColors.error,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.close_rounded, size: 14, color: Colors.white),
+          ),
+        ),
       ),
-      child: Icon(Icons.close_rounded, size: 14, color: Colors.white),
     ),
   ),
 )
 ```
+
+> The `Positioned(top: 0, right: 0)` offsets the 44dp hit area so it extends toward the center of the thumbnail, keeping the visual badge flush with the top-right corner.
 
 **Spacing between thumbnails:** `SizedBox(width: 4)`.
 
@@ -179,12 +196,12 @@ Positioned(
 ```
 ListTile(
   leading: Icon(Icons.camera_alt_rounded, color: AppColors.accent),
-  title: Text('Câmera', style: TextStyle(fontSize: 14)),
+  title: Text('Tirar foto', style: TextStyle(fontSize: 14)),
   onTap: () { Navigator.pop(context, ImageSource.camera); },
 ),
 ListTile(
   leading: Icon(Icons.photo_library_rounded, color: AppColors.accent),
-  title: Text('Galeria', style: TextStyle(fontSize: 14)),
+  title: Text('Escolher da galeria', style: TextStyle(fontSize: 14)),
   onTap: () { Navigator.pop(context, ImageSource.gallery); },
 ),
 ```
@@ -198,7 +215,7 @@ ListTile(
 ### Camera / Gallery Flow
 
 1. User taps camera icon button on a question card.
-2. `_PickerSheet` modal appears — user selects "Câmera" or "Galeria".
+2. `_PickerSheet` modal appears — user selects "Tirar foto" or "Escolher da galeria".
 3. `image_picker` launches native picker. If user cancels, modal dismisses silently — no error, no state change.
 4. On image selected: thumbnail appears immediately as `uploading` state using `Image.file` (local path). Upload begins in background via `ImageService.uploadImage()`.
 5. On upload success: thumbnail transitions to `uploaded` state using signed URL from Supabase Storage. `setState` on `_ImageStrip`.
@@ -207,7 +224,7 @@ ListTile(
 
 ### Remove Photo Flow
 
-1. User taps the red `×` badge on an `uploaded` thumbnail.
+1. User taps the red `×` badge on an `uploaded` thumbnail (44dp tap target, 20dp visual badge).
 2. No confirmation dialog — removal is immediate (destructive without confirmation because it is low-stakes during an active audit).
 3. `ImageService.deleteImage()` called; thumbnail removed from local list immediately (optimistic removal).
 4. If delete fails: thumbnail reappears with error state; inline error icon only — no snackbar.
@@ -246,7 +263,7 @@ Upload failure does NOT affect `_failedSaves` map in `_AuditExecutionScreenState
 
 | Package | Version | Source | Vet Result |
 |---------|---------|--------|------------|
-| `image_picker` | `^1.1.2` (latest stable 2026-04) | pub.dev (Google/Flutter team) | Required — not currently in pubspec.yaml; must be added. Official package maintained by Flutter team. No suspicious patterns. |
+| `image_picker` | `^1.1.2` (latest stable 2026-04) | pub.dev (flutter.dev publisher) | Official Flutter team package (flutter.dev publisher) — no flags — 2026-04-27 |
 
 **No other new packages required.**
 
@@ -276,8 +293,8 @@ dependencies:
 | Element | Copy (pt-BR) |
 |---------|-------------|
 | Camera icon button tooltip | `"Adicionar foto"` |
-| Picker sheet — camera option | `"Câmera"` |
-| Picker sheet — gallery option | `"Galeria"` |
+| Picker sheet — camera option | `"Tirar foto"` |
+| Picker sheet — gallery option | `"Escolher da galeria"` |
 | Thumbnail count label (when > 0 images) | Not shown — thumbnails are self-evident; no count label needed |
 | Upload error state (inline on tile) | Icon only (`Icons.error_rounded`) — no text label (space-constrained 72dp tile) |
 | Upload in-progress state (inline on tile) | Spinner only — no text |
@@ -285,6 +302,7 @@ dependencies:
 | Remove confirmation | None — removal is immediate, no confirmation dialog |
 | Fullscreen viewer close | `Icons.close_rounded` only (no text label) |
 | Upload error (accessible label for screen readers) | `"Erro ao enviar foto. Toque para tentar novamente."` (Semantics widget wrapping error tile) |
+| Remove badge (accessible label for screen readers) | `"Remover foto"` (Semantics widget wrapping remove GestureDetector) |
 
 ---
 
@@ -333,7 +351,7 @@ _ItemCard.build()
 |-------|-------------------|
 | No images, active audit | Camera icon button only (44dp, accent color, borderRadius 10) |
 | 1+ images uploading | Camera button + thumbnail(s) with spinner overlay |
-| 1+ images uploaded | Camera button + thumbnail(s) with optional remove badge |
+| 1+ images uploaded | Camera button + thumbnail(s) with remove badge (20dp visual, 44dp tap target) |
 | 1+ images upload failed | Camera button + thumbnail(s) with red error icon; audit can still be finalized |
 | Read-only, no images | Nothing (SizedBox.shrink) |
 | Read-only, 1+ images | Thumbnail strip only (no camera button, no remove badge) |
@@ -343,11 +361,11 @@ _ItemCard.build()
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS — all copy defined in pt-BR; empty/error/CTA states specified
-- [ ] Dimension 2 Visuals: PASS — widget hierarchy, sizes, states, and overlays fully specified
+- [ ] Dimension 1 Copywriting: PASS — all copy defined in pt-BR; picker labels use action verbs ("Tirar foto", "Escolher da galeria"); empty/error/CTA states specified; remove badge accessible label declared
+- [ ] Dimension 2 Visuals: PASS — widget hierarchy, sizes, states, and overlays fully specified; Semantics wrapper declared on remove GestureDetector
 - [ ] Dimension 3 Color: PASS — uses only existing AppColors tokens; no new hex values introduced
-- [ ] Dimension 4 Typography: PASS — 2 sizes (12sp, 11sp) for new elements; 2 weights (w400, w600)
-- [ ] Dimension 5 Spacing: PASS — all values are multiples of 4; exceptions documented (44dp touch target, 72dp thumbnail, 20dp badge)
-- [ ] Dimension 6 Package Safety: PASS — `image_picker` is official Flutter team package on pub.dev; no suspicious patterns; required platform permissions documented
+- [ ] Dimension 4 Typography: PASS — 2 sizes (13sp body existing, 12sp label) for new elements; 2 weights (w400, w600); 3-size scale (11sp caption removed — error state uses icon only)
+- [ ] Dimension 5 Spacing: PASS — all values are multiples of 4; exceptions documented with mitigations; remove badge 44dp tap target via GestureDetector+SizedBox wrapper; base=14dp removed (existing value, not changed in Phase 9)
+- [ ] Dimension 6 Package Safety: PASS — `image_picker` is official Flutter team package (flutter.dev publisher); vet result timestamped 2026-04-27; no suspicious patterns; required platform permissions documented
 
 **Approval:** pending
