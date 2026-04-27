@@ -10,7 +10,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 
 - [ ] **Phase 6: Templates** - Corrigir ordenação e habilitar reordenação manual de perguntas no builder
 - [x] **Phase 7: Dashboard** - Exibir indicadores reais de auditorias e ações no dashboard
-- [ ] **Phase 8: Corrective Actions** - Criar, listar e gerenciar ações corretivas com fluxo de status CAPA
+- [x] **Phase 8: Corrective Actions** - Criar, listar e gerenciar ações corretivas com fluxo de status CAPA
 - [ ] **Phase 9: Images** - Anexar e visualizar fotos por pergunta durante a execução da auditoria
 - [ ] **Phase 10: Reports** - Filtrar e visualizar relatórios de auditorias concluídas com gráficos
 - [ ] **Phase 11: Notifications** - Central de notificações in-app, email automático e push FCM
@@ -59,7 +59,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
   - [x] 08-01-PLAN.md — Wave 1: Migration SQL (corrective_actions + RLS) + supabase db push [BLOCKING] + CorrectiveAction model + CorrectiveActionService (CRUD + static isNonConforming + static canTransitionTo) + unit test stubs
   - [x] 08-02-PLAN.md — Wave 2: CreateCorrectiveActionScreen (form D-02/D-03) + audit_execution_screen.dart icon injection (D-01) + UserService.getByCompany + DashboardService fix
   - [x] 08-03-PLAN.md — Wave 3: CorrectiveActionsScreen list with FilterChip status filters + responsible dropdown + RefreshIndicator + empty/error states (ACT-01)
-  - [ ] 08-04-PLAN.md — Wave 4: CorrectiveActionDetailScreen (ACT-03 RBAC transitions) + home_screen.dart badge + drawer item (ACT-04) + full test suite
+  - [x] 08-04-PLAN.md — Wave 4: CorrectiveActionDetailScreen (ACT-03 RBAC transitions) + home_screen.dart badge + drawer item (ACT-04) + full test suite
 **UI hint**: yes
 
 ### Phase 9: Images
@@ -119,7 +119,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 |-------|----------------|--------|-----------|
 | 6. Templates | 0/2 | Not started | - |
 | 7. Dashboard | 2/2 | Complete | 2026-04-25 |
-| 8. Corrective Actions | 3/4 | In Progress | - |
+| 8. Corrective Actions | 4/4 | Complete | 2026-04-27 |
 | 9. Images | 0/3 | Planned | - |
 | 10. Reports | 0/? | Not started | - |
 | 11. Notifications | 0/? | Not started | - |

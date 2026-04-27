@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Features & UX
 status: ready
-stopped_at: Phase 8 Plan 03 complete — Wave 3 CorrectiveActionsScreen list with FilterChip + responsible dropdown + RefreshIndicator + empty/error states verified (ACT-01)
-last_updated: "2026-04-27T20:05:00Z"
+stopped_at: Phase 8 Plan 04 complete — Wave 4 CorrectiveActionDetailScreen RBAC transitions + home_screen.dart badge + drawer item verified (ACT-03, ACT-04). Phase 8 COMPLETE.
+last_updated: "2026-04-27T20:14:00Z"
 last_activity: 2026-04-27
 progress:
   total_phases: 7
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-18)
 
 ## Current Position
 
-Phase: 8
-Plan: 03 complete — continue with 08-04
-Status: Phase 8 Plan 03 verified complete
+Phase: 8 COMPLETE — continue with Phase 9
+Plan: 04 complete
+Status: Phase 8 fully verified complete (all 4 plans, ACT-01 through ACT-04)
 Last activity: 2026-04-27
 
-Progress: [████░░░░░░] 45%
+Progress: [████░░░░░░] 55%
 
 ## Performance Metrics
 
@@ -82,7 +82,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-27T20:05:00Z
-Stopped at: Phase 8 Plan 03 complete — Wave 3 verified (CorrectiveActionsScreen list with FilterChip + responsible dropdown + RefreshIndicator + empty/error states)
-Resume file: .planning/phases/08-corrective-actions/08-03-SUMMARY.md
-Next action: Execute 08-04-PLAN.md (Wave 4: CorrectiveActionDetailScreen RBAC transitions + home_screen.dart badge + drawer item)
+Last session: 2026-04-27T20:14:00Z
+Stopped at: Phase 8 Plan 04 complete — Wave 4 verified (CorrectiveActionDetailScreen RBAC + home_screen.dart badge + drawer item; flutter test 231 passed). Phase 8 COMPLETE.
+Resume file: .planning/phases/08-corrective-actions/08-04-SUMMARY.md
+Next action: Execute Phase 9 — Images (09-01-PLAN.md: Migration SQL audit_item_images + RLS + bucket audit-images + image_picker)
