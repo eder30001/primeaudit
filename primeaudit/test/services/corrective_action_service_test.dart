@@ -7,6 +7,7 @@ import 'package:primeaudit/models/corrective_action.dart';
 CorrectiveAction _action({
   String id = 'ca1',
   String responsibleUserId = 'user_resp',
+  String createdBy = 'criador',
   CorrectiveActionStatus status = CorrectiveActionStatus.aberta,
 }) {
   return CorrectiveAction(
@@ -18,13 +19,16 @@ CorrectiveAction _action({
     dueDate: DateTime(2027, 1, 1),
     status: status,
     companyId: 'c1',
-    createdBy: 'u2',
+    createdBy: createdBy,
     createdAt: DateTime(2026, 4, 25),
     updatedAt: DateTime(2026, 4, 25),
   );
 }
 
 void main() {
+  // ---------------------------------------------------------------------------
+  // isNonConforming — inalterado
+  // ---------------------------------------------------------------------------
   group('CorrectiveActionService.isNonConforming — ok_nok', () {
     test("'ok' retorna false", () => expect(CorrectiveActionService.isNonConforming('ok_nok', 'ok'), isFalse));
     test("'nok' retorna true", () => expect(CorrectiveActionService.isNonConforming('ok_nok', 'nok'), isTrue));
@@ -56,91 +60,178 @@ void main() {
     test('text null retorna false', () => expect(CorrectiveActionService.isNonConforming('text', null), isFalse));
   });
 
-  group('CorrectiveActionService.canTransitionTo — admin/superuser/dev', () {
-    test('adm pode transicionar para qualquer status', () {
+  // ---------------------------------------------------------------------------
+  // canTransitionTo — admin/superuser/dev: bypass total
+  // ---------------------------------------------------------------------------
+  group('canTransitionTo — admin/superuser/dev bypass', () {
+    test('adm pode cancelar qualquer acao', () {
       expect(CorrectiveActionService.canTransitionTo(
         newStatus: 'cancelada', action: _action(), role: 'adm', userId: 'outro',
       ), isTrue);
     });
-    test('superuser pode transicionar para qualquer status', () {
-      expect(CorrectiveActionService.canTransitionTo(
-        newStatus: 'cancelada', action: _action(), role: 'superuser', userId: 'outro',
-      ), isTrue);
-    });
-    test('dev pode transicionar para qualquer status', () {
+    test('superuser pode aprovar qualquer acao', () {
       expect(CorrectiveActionService.canTransitionTo(
         newStatus: 'aprovada',
+        action: _action(status: CorrectiveActionStatus.emAvaliacao),
+        role: 'superuser', userId: 'outro',
+      ), isTrue);
+    });
+    test('dev pode rejeitar qualquer acao', () {
+      expect(CorrectiveActionService.canTransitionTo(
+        newStatus: 'rejeitada',
         action: _action(status: CorrectiveActionStatus.emAvaliacao),
         role: 'dev', userId: 'outro',
       ), isTrue);
     });
   });
 
-  group('CorrectiveActionService.canTransitionTo — responsavel', () {
-    test('responsavel pode mover aberta -> em_andamento', () {
+  // ---------------------------------------------------------------------------
+  // canTransitionTo — responsável (executa a ação)
+  // ---------------------------------------------------------------------------
+  group('canTransitionTo — responsavel', () {
+    test('pode iniciar: aberta -> em_andamento', () {
       expect(CorrectiveActionService.canTransitionTo(
         newStatus: 'em_andamento',
-        action: _action(status: CorrectiveActionStatus.aberta, responsibleUserId: 'user_resp'),
+        action: _action(status: CorrectiveActionStatus.aberta, responsibleUserId: 'user_resp', createdBy: 'outro'),
         role: 'auditor', userId: 'user_resp',
       ), isTrue);
     });
-    test('responsavel pode mover em_andamento -> em_avaliacao', () {
+
+    test('pode submeter: em_andamento -> em_avaliacao', () {
       expect(CorrectiveActionService.canTransitionTo(
         newStatus: 'em_avaliacao',
-        action: _action(status: CorrectiveActionStatus.emAndamento, responsibleUserId: 'user_resp'),
+        action: _action(status: CorrectiveActionStatus.emAndamento, responsibleUserId: 'user_resp', createdBy: 'outro'),
         role: 'auditor', userId: 'user_resp',
       ), isTrue);
     });
-    test('responsavel pode re-abrir rejeitada -> em_andamento', () {
+
+    test('pode reabrir: rejeitada -> em_andamento', () {
       expect(CorrectiveActionService.canTransitionTo(
         newStatus: 'em_andamento',
-        action: _action(status: CorrectiveActionStatus.rejeitada, responsibleUserId: 'user_resp'),
+        action: _action(status: CorrectiveActionStatus.rejeitada, responsibleUserId: 'user_resp', createdBy: 'outro'),
         role: 'auditor', userId: 'user_resp',
       ), isTrue);
     });
-    test('responsavel NAO pode cancelar', () {
+
+    test('NAO pode cancelar', () {
       expect(CorrectiveActionService.canTransitionTo(
         newStatus: 'cancelada',
-        action: _action(responsibleUserId: 'user_resp'),
+        action: _action(responsibleUserId: 'user_resp', createdBy: 'outro'),
         role: 'auditor', userId: 'user_resp',
       ), isFalse);
     });
-    test('responsavel NAO pode aprovar (precisa ser auditor/admin)', () {
+
+    test('NAO pode aprovar (responsavel nao avalia a propria acao)', () {
       expect(CorrectiveActionService.canTransitionTo(
         newStatus: 'aprovada',
-        action: _action(status: CorrectiveActionStatus.emAvaliacao, responsibleUserId: 'user_resp'),
+        action: _action(status: CorrectiveActionStatus.emAvaliacao, responsibleUserId: 'user_resp', createdBy: 'outro'),
+        role: 'auditor', userId: 'user_resp',
+      ), isFalse);
+    });
+
+    test('NAO pode rejeitar (responsavel nao avalia a propria acao)', () {
+      expect(CorrectiveActionService.canTransitionTo(
+        newStatus: 'rejeitada',
+        action: _action(status: CorrectiveActionStatus.emAvaliacao, responsibleUserId: 'user_resp', createdBy: 'outro'),
         role: 'auditor', userId: 'user_resp',
       ), isFalse);
     });
   });
 
-  group('CorrectiveActionService.canTransitionTo — auditor nao-responsavel', () {
-    test('auditor pode aprovar em_avaliacao', () {
-      expect(CorrectiveActionService.canTransitionTo(
-        newStatus: 'aprovada',
-        action: _action(status: CorrectiveActionStatus.emAvaliacao, responsibleUserId: 'outro_user'),
-        role: 'auditor', userId: 'auditor_user',
-      ), isTrue);
-    });
-    test('auditor pode rejeitar em_avaliacao', () {
-      expect(CorrectiveActionService.canTransitionTo(
-        newStatus: 'rejeitada',
-        action: _action(status: CorrectiveActionStatus.emAvaliacao, responsibleUserId: 'outro_user'),
-        role: 'auditor', userId: 'auditor_user',
-      ), isTrue);
-    });
-    test('auditor NAO pode mover aberta -> em_andamento (somente responsavel/admin)', () {
+  // ---------------------------------------------------------------------------
+  // canTransitionTo — criador (avalia e gerencia a ação)
+  // ---------------------------------------------------------------------------
+  group('canTransitionTo — criador (nao-responsavel)', () {
+    test('pode iniciar acao aberta', () {
       expect(CorrectiveActionService.canTransitionTo(
         newStatus: 'em_andamento',
-        action: _action(status: CorrectiveActionStatus.aberta, responsibleUserId: 'outro_user'),
-        role: 'auditor', userId: 'auditor_user',
+        action: _action(status: CorrectiveActionStatus.aberta, responsibleUserId: 'user_resp', createdBy: 'criador'),
+        role: 'auditor', userId: 'criador',
+      ), isTrue);
+    });
+
+    test('pode reabrir acao rejeitada', () {
+      expect(CorrectiveActionService.canTransitionTo(
+        newStatus: 'em_andamento',
+        action: _action(status: CorrectiveActionStatus.rejeitada, responsibleUserId: 'user_resp', createdBy: 'criador'),
+        role: 'auditor', userId: 'criador',
+      ), isTrue);
+    });
+
+    test('pode aprovar acao em avaliacao', () {
+      expect(CorrectiveActionService.canTransitionTo(
+        newStatus: 'aprovada',
+        action: _action(status: CorrectiveActionStatus.emAvaliacao, responsibleUserId: 'user_resp', createdBy: 'criador'),
+        role: 'auditor', userId: 'criador',
+      ), isTrue);
+    });
+
+    test('pode rejeitar acao em avaliacao', () {
+      expect(CorrectiveActionService.canTransitionTo(
+        newStatus: 'rejeitada',
+        action: _action(status: CorrectiveActionStatus.emAvaliacao, responsibleUserId: 'user_resp', createdBy: 'criador'),
+        role: 'auditor', userId: 'criador',
+      ), isTrue);
+    });
+
+    test('NAO pode submeter (apenas o responsavel executa)', () {
+      expect(CorrectiveActionService.canTransitionTo(
+        newStatus: 'em_avaliacao',
+        action: _action(status: CorrectiveActionStatus.emAndamento, responsibleUserId: 'user_resp', createdBy: 'criador'),
+        role: 'auditor', userId: 'criador',
       ), isFalse);
     });
-    test('auditor NAO pode cancelar', () {
+
+    test('NAO pode cancelar', () {
       expect(CorrectiveActionService.canTransitionTo(
         newStatus: 'cancelada',
-        action: _action(responsibleUserId: 'outro_user'),
-        role: 'auditor', userId: 'auditor_user',
+        action: _action(responsibleUserId: 'user_resp', createdBy: 'criador'),
+        role: 'auditor', userId: 'criador',
+      ), isFalse);
+    });
+
+    test('criador que tambem e responsavel NAO pode aprovar a propria acao', () {
+      expect(CorrectiveActionService.canTransitionTo(
+        newStatus: 'aprovada',
+        action: _action(status: CorrectiveActionStatus.emAvaliacao, responsibleUserId: 'criador', createdBy: 'criador'),
+        role: 'auditor', userId: 'criador',
+      ), isFalse);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // canTransitionTo — terceiro (auditor sem vinculo com a acao)
+  // ---------------------------------------------------------------------------
+  group('canTransitionTo — terceiro sem vinculo', () {
+    test('NAO pode iniciar acao', () {
+      expect(CorrectiveActionService.canTransitionTo(
+        newStatus: 'em_andamento',
+        action: _action(status: CorrectiveActionStatus.aberta, responsibleUserId: 'user_resp', createdBy: 'criador'),
+        role: 'auditor', userId: 'terceiro',
+      ), isFalse);
+    });
+
+    test('NAO pode aprovar acao', () {
+      expect(CorrectiveActionService.canTransitionTo(
+        newStatus: 'aprovada',
+        action: _action(status: CorrectiveActionStatus.emAvaliacao, responsibleUserId: 'user_resp', createdBy: 'criador'),
+        role: 'auditor', userId: 'terceiro',
+      ), isFalse);
+    });
+
+    test('NAO pode rejeitar acao', () {
+      expect(CorrectiveActionService.canTransitionTo(
+        newStatus: 'rejeitada',
+        action: _action(status: CorrectiveActionStatus.emAvaliacao, responsibleUserId: 'user_resp', createdBy: 'criador'),
+        role: 'auditor', userId: 'terceiro',
+      ), isFalse);
+    });
+
+    test('NAO pode cancelar', () {
+      expect(CorrectiveActionService.canTransitionTo(
+        newStatus: 'cancelada',
+        action: _action(responsibleUserId: 'user_resp', createdBy: 'criador'),
+        role: 'auditor', userId: 'terceiro',
       ), isFalse);
     });
   });

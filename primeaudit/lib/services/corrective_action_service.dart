@@ -59,6 +59,17 @@ class CorrectiveActionService {
     await _client.from('corrective_actions').update(updates).eq('id', id);
   }
 
+  Future<void> deleteAction(String id) async {
+    await _client.from('corrective_actions').delete().eq('id', id);
+  }
+
+  Future<void> updateResponsible(String id, String newResponsibleUserId) async {
+    await _client.from('corrective_actions').update({
+      'responsible_user_id': newResponsibleUserId,
+      'updated_at': DateTime.now().toIso8601String(),
+    }).eq('id', id);
+  }
+
   Future<int> getOpenActionsCount(String? companyId) async {
     var query = _client
         .from('corrective_actions')
@@ -91,8 +102,11 @@ class CorrectiveActionService {
     }
   }
 
-  /// Determina se o usuário (role + userId) pode transicionar a ação para newStatus.
-  /// Estático para testabilidade — ver RBAC matrix em 08-UI-SPEC.md.
+  /// RBAC matrix de transição de status.
+  /// - admin/superuser/dev: todas as transições
+  /// - responsável: iniciar (aberta→em_andamento), submeter (em_andamento→em_avaliacao), reabrir (rejeitada→em_andamento)
+  /// - criador (não-responsável): iniciar, reabrir, aprovar, rejeitar
+  /// - cancelar: apenas admin
   static bool canTransitionTo({
     required String newStatus,
     required CorrectiveAction action,
@@ -102,18 +116,21 @@ class CorrectiveActionService {
     if (AppRole.canAccessAdmin(role) || AppRole.isSuperOrDev(role)) return true;
 
     final isResponsible = action.responsibleUserId == userId;
+    final isCreator = action.createdBy == userId;
 
     switch (newStatus) {
       case 'em_andamento':
-        return isResponsible &&
+        return (isResponsible || isCreator) &&
             (action.status == CorrectiveActionStatus.aberta ||
                 action.status == CorrectiveActionStatus.rejeitada);
       case 'em_avaliacao':
-        return isResponsible && action.status == CorrectiveActionStatus.emAndamento;
+        return isResponsible &&
+            action.status == CorrectiveActionStatus.emAndamento;
       case 'aprovada':
       case 'rejeitada':
-        return !isResponsible &&
-            role == AppRole.auditor &&
+        // Criador (não-responsável) avalia; rejeição explicitamente restrita a criador/admin
+        return isCreator &&
+            !isResponsible &&
             action.status == CorrectiveActionStatus.emAvaliacao;
       case 'cancelada':
         return false;

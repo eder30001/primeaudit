@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
+import '../core/app_roles.dart';
 import '../core/app_theme.dart';
+import '../models/app_user.dart';
 import '../models/corrective_action.dart';
+import '../services/company_context_service.dart';
 import '../services/corrective_action_service.dart';
+import '../services/user_service.dart';
 import 'corrective_actions_screen.dart' show CorrectiveActionStatusChip;
 
 class CorrectiveActionDetailScreen extends StatefulWidget {
@@ -25,13 +29,32 @@ class CorrectiveActionDetailScreen extends StatefulWidget {
 class _CorrectiveActionDetailScreenState
     extends State<CorrectiveActionDetailScreen> {
   final _service = CorrectiveActionService();
-  bool _isTransitioning = false;
+  final _userService = UserService();
   late CorrectiveAction _action;
+  bool _isTransitioning = false;
+
+  // Campo inline de "ação tomada" — preenchido pelo responsável antes de submeter
+  final _resolutionCtrl = TextEditingController();
+
+  bool get _isAdmin =>
+      AppRole.canAccessAdmin(widget.currentUserRole) ||
+      AppRole.isSuperOrDev(widget.currentUserRole);
+  bool get _isResponsible =>
+      _action.responsibleUserId == widget.currentUserId;
+  bool get _isCreator => _action.createdBy == widget.currentUserId;
+  bool get _canInteract => _isAdmin || _isResponsible || _isCreator;
 
   @override
   void initState() {
     super.initState();
     _action = widget.action;
+    _resolutionCtrl.text = _action.resolutionNotes ?? '';
+  }
+
+  @override
+  void dispose() {
+    _resolutionCtrl.dispose();
+    super.dispose();
   }
 
   void _snack(String msg) {
@@ -41,7 +64,8 @@ class _CorrectiveActionDetailScreenState
     );
   }
 
-  Future<bool?> _confirmTransition(String title, String body) {
+  Future<bool?> _confirm(String title, String body,
+      {bool destructive = false}) {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -54,48 +78,9 @@ class _CorrectiveActionDetailScreenState
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Confirmar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<String?> _askResolutionNotes() async {
-    final ctrl = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Ação tomada'),
-        content: Form(
-          key: formKey,
-          child: TextFormField(
-            controller: ctrl,
-            autofocus: true,
-            maxLines: 4,
-            textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
-              hintText: 'Descreva o que foi feito para resolver o problema…',
-              border: OutlineInputBorder(),
-            ),
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Campo obrigatório' : null,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                Navigator.pop(ctx, ctrl.text.trim());
-              }
-            },
+            style: destructive
+                ? TextButton.styleFrom(foregroundColor: AppColors.error)
+                : null,
             child: const Text('Confirmar'),
           ),
         ],
@@ -104,35 +89,129 @@ class _CorrectiveActionDetailScreenState
   }
 
   Future<void> _doTransition(String newStatus) async {
-    String? resolutionNotes;
-
+    // Para submeter para avaliação, exige "ação tomada" preenchida inline
     if (newStatus == 'em_avaliacao') {
-      resolutionNotes = await _askResolutionNotes();
-      if (resolutionNotes == null) return; // usuário cancelou
-    } else if (newStatus == 'cancelada') {
-      final confirmed = await _confirmTransition(
+      if (_resolutionCtrl.text.trim().isEmpty) {
+        _snack('Descreva a ação tomada antes de enviar para avaliação.');
+        return;
+      }
+    }
+
+    if (newStatus == 'cancelada') {
+      final ok = await _confirm(
         'Cancelar ação corretiva',
         'Esta ação será marcada como cancelada. Confirma?',
+        destructive: true,
       );
-      if (confirmed != true) return;
+      if (ok != true) return;
     } else if (newStatus == 'rejeitada') {
-      final confirmed = await _confirmTransition(
+      final ok = await _confirm(
         'Rejeitar ação corretiva',
-        'Confirma a rejeição desta ação? O responsável deverá corrigi-la ou abrir uma nova ação.',
+        'Confirma a rejeição? O responsável deverá corrigir ou abrir uma nova ação.',
+        destructive: true,
       );
-      if (confirmed != true) return;
+      if (ok != true) return;
     }
 
     setState(() => _isTransitioning = true);
     try {
-      await _service.updateStatus(_action.id, newStatus,
-          resolutionNotes: resolutionNotes);
+      final notes = _resolutionCtrl.text.trim();
+      await _service.updateStatus(
+        _action.id,
+        newStatus,
+        resolutionNotes: notes.isNotEmpty ? notes : null,
+      );
       if (!mounted) return;
-      _snack(
-          'Status atualizado para ${CorrectiveActionStatus.fromDb(newStatus).label}');
+      _snack('Status: ${CorrectiveActionStatus.fromDb(newStatus).label}');
       Navigator.pop(context, true);
     } catch (e) {
       _snack('Erro ao atualizar status. Tente novamente.');
+    } finally {
+      if (mounted) setState(() => _isTransitioning = false);
+    }
+  }
+
+  Future<void> _changeResponsible() async {
+    final companyId = CompanyContextService.instance.activeCompanyId;
+    if (companyId == null) {
+      _snack('Empresa não selecionada.');
+      return;
+    }
+
+    List<AppUser> users = [];
+    try {
+      users = await _userService.getByCompany(companyId);
+    } catch (_) {
+      _snack('Erro ao carregar usuários.');
+      return;
+    }
+
+    if (!mounted) return;
+
+    String? selectedId = _action.responsibleUserId;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: const Text('Alterar responsável'),
+          content: DropdownButtonFormField<String>(
+            value: selectedId,
+            items: users
+                .map((u) => DropdownMenuItem(value: u.id, child: Text(u.fullName)))
+                .toList(),
+            onChanged: (v) => setLocal(() => selectedId = v),
+            decoration: const InputDecoration(
+              labelText: 'Responsável',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Confirmar'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirmed != true || selectedId == null) return;
+    if (selectedId == _action.responsibleUserId) return;
+
+    setState(() => _isTransitioning = true);
+    try {
+      await _service.updateResponsible(_action.id, selectedId!);
+      if (!mounted) return;
+      _snack('Responsável atualizado.');
+      Navigator.pop(context, true);
+    } catch (e) {
+      _snack('Erro ao atualizar responsável.');
+    } finally {
+      if (mounted) setState(() => _isTransitioning = false);
+    }
+  }
+
+  Future<void> _deleteAction() async {
+    final ok = await _confirm(
+      'Excluir ação corretiva',
+      'Esta ação será excluída permanentemente. Isso não pode ser desfeito.',
+      destructive: true,
+    );
+    if (ok != true) return;
+
+    setState(() => _isTransitioning = true);
+    try {
+      await _service.deleteAction(_action.id);
+      if (!mounted) return;
+      _snack('Ação excluída.');
+      Navigator.pop(context, true);
+    } catch (e) {
+      _snack('Erro ao excluir a ação.');
     } finally {
       if (mounted) setState(() => _isTransitioning = false);
     }
@@ -151,6 +230,15 @@ class _CorrectiveActionDetailScreenState
         foregroundColor: Colors.white,
         title: const Text('Ação Corretiva',
             style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          // Criador pode excluir (qualquer status)
+          if (_isCreator || _isAdmin)
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded),
+              tooltip: 'Excluir ação',
+              onPressed: _isTransitioning ? null : _deleteAction,
+            ),
+        ],
       ),
       body: _isTransitioning
           ? const Center(
@@ -160,11 +248,37 @@ class _CorrectiveActionDetailScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Chip de status centralizado
                   Center(child: CorrectiveActionStatusChip(status: a.status)),
                   const SizedBox(height: 16),
+
+                  // Card principal de informações
                   _buildInfoCard(t, a, overdue),
-                  const SizedBox(height: 24),
-                  ..._buildTransitionButtons(t, a),
+                  const SizedBox(height: 16),
+
+                  // Campo inline "Ação tomada" — editável pelo responsável em em_andamento
+                  if (!a.status.isFinal) _buildResolutionField(t, a),
+
+                  // Botão alterar responsável — visível ao criador em status não-final
+                  if ((_isCreator || _isAdmin) && !a.status.isFinal) ...[
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: _changeResponsible,
+                      icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+                      label: const Text('Alterar responsável'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 44),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ],
+
+                  // Botões de transição — só para quem pode interagir
+                  if (_canInteract && !a.status.isFinal) ...[
+                    const SizedBox(height: 24),
+                    ..._buildTransitionButtons(t, a),
+                  ],
                 ],
               ),
             ),
@@ -184,12 +298,12 @@ class _CorrectiveActionDetailScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'INFORMAÇÕES DA AÇÃO',
+              'INFORMAÇÕES',
               style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
                 color: t.textSecondary,
-                letterSpacing: 0.5,
+                letterSpacing: 0.8,
               ),
             ),
             const SizedBox(height: 12),
@@ -202,24 +316,21 @@ class _CorrectiveActionDetailScreenState
             _divider(t),
             _InfoRow(
               label: 'Prazo',
-              value:
-                  '${a.dueDate.day}/${a.dueDate.month}/${a.dueDate.year}',
+              value: '${a.dueDate.day}/${a.dueDate.month}/${a.dueDate.year}',
               theme: t,
               valueColor: overdue ? AppColors.error : null,
             ),
             if (a.description != null && a.description!.isNotEmpty) ...[
               _divider(t),
-              _InfoRow(
-                  label: 'Descrição / Observação',
-                  value: a.description!,
-                  theme: t),
+              _InfoRow(label: 'Descrição', value: a.description!, theme: t),
             ],
-            if (a.resolutionNotes != null && a.resolutionNotes!.isNotEmpty) ...[
+            // Ação tomada — exibida como read-only quando já preenchida e status é final ou em avaliação
+            if (a.resolutionNotes != null &&
+                a.resolutionNotes!.isNotEmpty &&
+                (a.status.isFinal ||
+                    a.status == CorrectiveActionStatus.emAvaliacao)) ...[
               _divider(t),
-              _InfoRow(
-                  label: 'Ação tomada',
-                  value: a.resolutionNotes!,
-                  theme: t),
+              _InfoRow(label: 'Ação tomada', value: a.resolutionNotes!, theme: t),
             ],
             if (a.linkedAuditTitle != null) ...[
               _divider(t),
@@ -230,7 +341,7 @@ class _CorrectiveActionDetailScreenState
             ],
             _divider(t),
             _InfoRow(
-              label: 'Data de criação',
+              label: 'Criado em',
               value:
                   '${a.createdAt.day}/${a.createdAt.month}/${a.createdAt.year}',
               theme: t,
@@ -241,15 +352,81 @@ class _CorrectiveActionDetailScreenState
     );
   }
 
+  Widget _buildResolutionField(AppTheme t, CorrectiveAction a) {
+    // Campo editável: responsável em em_andamento
+    // Campo read-only informativo: em outros estados não-finais (mostrado no card acima se final)
+    final canEdit = _isResponsible &&
+        a.status == CorrectiveActionStatus.emAndamento;
+
+    if (!canEdit && (a.resolutionNotes == null || a.resolutionNotes!.isEmpty)) {
+      return const SizedBox.shrink();
+    }
+    if (!canEdit) return const SizedBox.shrink(); // já exibido no card
+
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: AppColors.accent.withValues(alpha: 0.4)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'AÇÃO TOMADA',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.accent,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Obrigatório para enviar à avaliação.',
+              style: TextStyle(fontSize: 12, color: t.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _resolutionCtrl,
+              maxLines: 4,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                hintText: 'Descreva o que foi feito para resolver o problema…',
+                hintStyle:
+                    TextStyle(color: t.textSecondary, fontSize: 13),
+                filled: true,
+                fillColor: t.background,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: t.divider),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: t.divider),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide:
+                      const BorderSide(color: AppColors.accent, width: 1.5),
+                ),
+                contentPadding: const EdgeInsets.all(12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _divider(AppTheme t) => Divider(height: 16, color: t.divider);
 
   List<Widget> _buildTransitionButtons(AppTheme t, CorrectiveAction a) {
-    if (a.status.isFinal) return [];
-
     final buttons = <Widget>[];
 
-    void addButton(String newStatus, String label,
-        {bool destructive = false}) {
+    void add(String newStatus, String label, {bool destructive = false}) {
       if (!CorrectiveActionService.canTransitionTo(
         newStatus: newStatus,
         action: a,
@@ -287,48 +464,37 @@ class _CorrectiveActionDetailScreenState
 
     switch (a.status) {
       case CorrectiveActionStatus.aberta:
-        addButton('em_andamento', 'Iniciar ação');
-        addButton('cancelada', 'Cancelar ação', destructive: true);
+        add('em_andamento', 'Iniciar ação');
+        add('cancelada', 'Cancelar ação', destructive: true);
         break;
       case CorrectiveActionStatus.emAndamento:
-        addButton('em_avaliacao', 'Enviar para avaliação');
-        addButton('cancelada', 'Cancelar ação', destructive: true);
+        add('em_avaliacao', 'Enviar para avaliação');
+        add('cancelada', 'Cancelar ação', destructive: true);
         break;
       case CorrectiveActionStatus.emAvaliacao:
-        addButton('aprovada', 'Aprovar');
-        addButton('rejeitada', 'Rejeitar ação', destructive: true);
-        addButton('cancelada', 'Cancelar ação', destructive: true);
+        add('aprovada', 'Aprovar');
+        add('rejeitada', 'Rejeitar ação', destructive: true);
+        add('cancelada', 'Cancelar ação', destructive: true);
         break;
       case CorrectiveActionStatus.rejeitada:
-        addButton('em_andamento', 'Iniciar ação');
-        addButton('cancelada', 'Cancelar ação', destructive: true);
+        add('em_andamento', 'Iniciar ação');
+        add('cancelada', 'Cancelar ação', destructive: true);
         break;
       case CorrectiveActionStatus.aprovada:
       case CorrectiveActionStatus.cancelada:
         break;
     }
 
-    if (buttons.isEmpty) {
-      return [
-        Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            'Você não tem permissão para alterar o status desta ação.',
-            style: TextStyle(fontSize: 13, color: t.textSecondary),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ];
-    }
+    if (buttons.isEmpty) return [];
 
     return [
       Text(
         'AÇÕES DISPONÍVEIS',
         style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
           color: t.textSecondary,
-          letterSpacing: 0.5,
+          letterSpacing: 0.8,
         ),
       ),
       const SizedBox(height: 12),
