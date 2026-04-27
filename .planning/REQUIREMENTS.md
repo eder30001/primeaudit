@@ -17,7 +17,7 @@
 ### Ações Corretivas (ACT)
 
 - [ ] **ACT-01**: Usuário vê lista de ações corretivas com status e filtros por responsável e status
-- [ ] **ACT-02**: Auditor pode criar ação vinculada a uma pergunta durante a execução, definindo responsável e prazo
+- [x] **ACT-02**: Auditor pode criar ação vinculada a uma pergunta durante a execução, definindo responsável e prazo
 - [ ] **ACT-03**: Status segue fluxo CAPA com 6 estados (aberta → em_andamento → em_avaliacao → aprovada/rejeitada/cancelada); Admin altera qualquer status; Responsável pode mover para em_andamento e em_avaliacao; Auditor pode mover para aprovada e rejeitada
 - [ ] **ACT-04**: Badge com contagem de ações abertas visível na navegação principal
 
@@ -101,7 +101,7 @@
 | DASH-02 | Phase 7 | Complete — 2026-04-25 |
 | DASH-03 | Phase 7 | Complete — 2026-04-25 |
 | ACT-01 | Phase 8 | Pending |
-| ACT-02 | Phase 8 | Pending |
+| ACT-02 | Phase 8 | Complete — 2026-04-27 |
 | ACT-03 | Phase 8 | Pending |
 | ACT-04 | Phase 8 | Pending |
 | IMG-01 | Phase 9 | Pending |
