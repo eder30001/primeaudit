@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Features & UX
 status: ready
-stopped_at: Phase 8 Plan 04 complete — Wave 4 CorrectiveActionDetailScreen RBAC transitions + home_screen.dart badge + drawer item verified (ACT-03, ACT-04). Phase 8 COMPLETE.
-last_updated: "2026-04-27T20:14:00Z"
+stopped_at: Phase 8 complete — ACT-01 a ACT-04 entregues e verificados; Phase 9 planejada (3 planos prontos)
+last_updated: "2026-04-27T00:00:00Z"
 last_activity: 2026-04-27
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 11
   completed_plans: 7
   percent: 50
@@ -82,7 +82,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-27T20:14:00Z
-Stopped at: Phase 8 Plan 04 complete — Wave 4 verified (CorrectiveActionDetailScreen RBAC + home_screen.dart badge + drawer item; flutter test 231 passed). Phase 8 COMPLETE.
-Resume file: .planning/phases/08-corrective-actions/08-04-SUMMARY.md
+Last session: 2026-04-27T00:00:00Z
+Stopped at: Phase 8 complete e verificado (ACT-01 a ACT-04). Phase 9 planejada (3 planos, 3 waves — pronta para executar).
+Resume file: .planning/phases/09-images/09-01-PLAN.md
+Next action: `/gsd-execute-phase 9`
 Next action: Execute Phase 9 — Images (09-01-PLAN.md: Migration SQL audit_item_images + RLS + bucket audit-images + image_picker)

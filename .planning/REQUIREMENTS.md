@@ -100,10 +100,10 @@
 | DASH-01 | Phase 7 | Complete — 2026-04-25 |
 | DASH-02 | Phase 7 | Complete — 2026-04-25 |
 | DASH-03 | Phase 7 | Complete — 2026-04-25 |
-| ACT-01 | Phase 8 | Pending |
+| ACT-01 | Phase 8 | Complete — 2026-04-27 |
 | ACT-02 | Phase 8 | Complete — 2026-04-27 |
-| ACT-03 | Phase 8 | Pending |
-| ACT-04 | Phase 8 | Pending |
+| ACT-03 | Phase 8 | Complete — 2026-04-27 |
+| ACT-04 | Phase 8 | Complete — 2026-04-27 |
 | IMG-01 | Phase 9 | Pending |
 | IMG-02 | Phase 9 | Pending |
 | IMG-03 | Phase 9 | Pending |
