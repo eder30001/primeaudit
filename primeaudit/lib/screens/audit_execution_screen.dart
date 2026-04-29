@@ -1,18 +1,12 @@
-import 'dart:io';
-import 'dart:math';
-
+import 'dart:math' show pow;
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../core/app_colors.dart';
 import '../core/app_theme.dart';
 import '../models/audit.dart';
-import '../models/audit_item_image.dart';
 import '../models/audit_template.dart';
 import '../services/audit_answer_service.dart';
 import '../services/audit_service.dart';
 import '../services/audit_template_service.dart';
-import '../services/company_context_service.dart';
-import '../services/image_service.dart';
 import 'pending_save.dart';
 import 'create_corrective_action_screen.dart';
 import '../services/corrective_action_service.dart';
@@ -22,22 +16,6 @@ import '../services/corrective_action_service.dart';
 // real é pública para permitir teste unitário direto em test/pending_save_test.dart.
 typedef _PendingSave = PendingSave;
 
-// ---------------------------------------------------------------------------
-// Tipos auxiliares para o sistema de imagens (Phase 9)
-// ---------------------------------------------------------------------------
-enum _UploadState { uploading, uploaded, error }
-
-class _UploadEntry {
-  final _UploadState state;
-  final XFile? localFile;       // disponível nos estados uploading e error
-  final AuditItemImage? image;  // disponível no estado uploaded
-
-  const _UploadEntry({
-    required this.state,
-    this.localFile,
-    this.image,
-  });
-}
 
 class AuditExecutionScreen extends StatefulWidget {
   final Audit audit;
@@ -54,7 +32,6 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
   final _templateService = AuditTemplateService();
   final _answerService = AuditAnswerService();
   final _auditService = AuditService();
-  final _imageService = ImageService();
   final _correctiveActionService = CorrectiveActionService();
 
   List<TemplateSection> _sections = [];   // seções com items populados
@@ -64,8 +41,6 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
   final Map<String, String> _answers = {};
   final Map<String, String> _observations = {};
 
-  // itemId → lista de imagens (carregadas no _load)
-  final Map<String, List<AuditItemImage>> _images = {};
 
   // Fila de retry: itemId → dados do save com falha
   final Map<String, _PendingSave> _failedSaves = {};
@@ -127,24 +102,6 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
         }
       }
 
-      // Bloco separado e resiliente — falha de rede ao carregar imagens não impede abertura do checklist
-      final imagesMap = <String, List<AuditItemImage>>{};
-      try {
-        final imagesList = await Future.wait(
-          items.map((item) => _imageService.getImages(
-            auditId: widget.audit.id,
-            itemId: item.id,
-          )),
-        );
-        for (int i = 0; i < items.length; i++) {
-          if (imagesList[i].isNotEmpty) {
-            imagesMap[items[i].id] = imagesList[i];
-          }
-        }
-      } catch (_) {
-        // Falha silenciosa — _images fica vazio, auditor continua sem pré-carregamento
-      }
-
       if (mounted) {
         setState(() {
           _sections = sections;
@@ -159,7 +116,6 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
               items: unsectioned,
             ));
           }
-          _images.addAll(imagesMap);
           _loading = false;
         });
       }
@@ -711,12 +667,6 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
                           ),
                         );
                       },
-                images: _images,
-                onImagesChanged: (itemId, updated) {
-                  setState(() => _images[itemId] = updated);
-                },
-                companyId:
-                    CompanyContextService.instance.activeCompanyId ?? '',
               ),
             ),
           ),
@@ -913,9 +863,6 @@ class _SectionBlock extends StatelessWidget {
   final AppTheme theme;
   final Audit? audit;
   final void Function(TemplateItem)? onCreateAction;
-  final Map<String, List<AuditItemImage>> images;
-  final void Function(String itemId, List<AuditItemImage>) onImagesChanged;
-  final String companyId;
 
   const _SectionBlock({
     required this.section,
@@ -928,9 +875,6 @@ class _SectionBlock extends StatelessWidget {
     required this.theme,
     this.audit,
     this.onCreateAction,
-    required this.images,
-    required this.onImagesChanged,
-    required this.companyId,
   });
 
   @override
@@ -983,9 +927,6 @@ class _SectionBlock extends StatelessWidget {
           theme: t,
           audit: audit,
           onCreateAction: onCreateAction,
-          images: images[item.id] ?? [],
-          onImagesChanged: (updated) => onImagesChanged(item.id, updated),
-          companyId: companyId,
         )),
 
         const SizedBox(height: 4),
@@ -1008,9 +949,6 @@ class _ItemCard extends StatefulWidget {
   final AppTheme theme;
   final Audit? audit;
   final void Function(TemplateItem)? onCreateAction;
-  final List<AuditItemImage> images;
-  final void Function(List<AuditItemImage>) onImagesChanged;
-  final String companyId;
 
   const _ItemCard({
     required this.item,
@@ -1023,9 +961,6 @@ class _ItemCard extends StatefulWidget {
     required this.theme,
     this.audit,
     this.onCreateAction,
-    required this.images,
-    required this.onImagesChanged,
-    required this.companyId,
   });
 
   @override
@@ -1179,21 +1114,6 @@ class _ItemCardState extends State<_ItemCard> {
                 ],
               ),
             ),
-            // Imagens — apenas em não conformidade (edit) ou se há imagens salvas (read-only)
-            if ((!widget.readOnly &&
-                    CorrectiveActionService.isNonConforming(
-                        widget.item.responseType, widget.answer)) ||
-                (widget.readOnly && widget.images.isNotEmpty)) ...[
-              const SizedBox(height: 8),
-              _ImageStrip(
-                auditId: widget.audit?.id ?? '',
-                itemId: widget.item.id,
-                companyId: widget.companyId,
-                readOnly: widget.readOnly,
-                initialImages: widget.images,
-                onImagesChanged: widget.onImagesChanged,
-              ),
-            ],
             if (widget.onCreateAction != null &&
                 CorrectiveActionService.isNonConforming(
                     widget.item.responseType, widget.answer) &&
@@ -1716,465 +1636,3 @@ class _Badge extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Strip de imagens — inserido no _ItemCard (Phase 9)
-// ---------------------------------------------------------------------------
-class _ImageStrip extends StatefulWidget {
-  final String auditId;
-  final String itemId;
-  final String companyId;
-  final bool readOnly;
-  final List<AuditItemImage> initialImages;
-  final void Function(List<AuditItemImage>) onImagesChanged;
-
-  const _ImageStrip({
-    required this.auditId,
-    required this.itemId,
-    required this.companyId,
-    required this.readOnly,
-    required this.initialImages,
-    required this.onImagesChanged,
-  });
-
-  @override
-  State<_ImageStrip> createState() => _ImageStripState();
-}
-
-class _ImageStripState extends State<_ImageStrip> {
-  // Chave: id local temporário (antes do upload) ou image.id (após upload)
-  final Map<String, _UploadEntry> _entries = {};
-  final _imageService = ImageService();
-
-  @override
-  void initState() {
-    super.initState();
-    // Popula entries com imagens já carregadas (do _load() da tela pai)
-    for (final img in widget.initialImages) {
-      _entries[img.id] = _UploadEntry(
-        state: _UploadState.uploaded,
-        image: img,
-      );
-    }
-  }
-
-  Future<void> _pickImage() async {
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      backgroundColor: AppTheme.of(context).surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => const _PickerSheet(),
-    );
-    if (source == null) return;
-
-    final picker = ImagePicker();
-    final xFile = await picker.pickImage(
-      source: source,
-      imageQuality: 85,
-      maxWidth: 1200,
-    );
-    if (xFile == null) return;
-
-    // Chave temporária para identificar este upload antes do id do banco
-    final tempKey = 'temp_${DateTime.now().microsecondsSinceEpoch}';
-    setState(() {
-      _entries[tempKey] = _UploadEntry(
-        state: _UploadState.uploading,
-        localFile: xFile,
-      );
-    });
-
-    try {
-      final img = await _imageService.uploadImage(
-        companyId: widget.companyId,
-        auditId: widget.auditId,
-        itemId: widget.itemId,
-        file: xFile,
-      );
-      if (!mounted) return;
-      setState(() {
-        _entries.remove(tempKey);
-        _entries[img.id] = _UploadEntry(
-          state: _UploadState.uploaded,
-          image: img,
-        );
-      });
-      widget.onImagesChanged(_uploadedImages());
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _entries[tempKey] = _UploadEntry(
-          state: _UploadState.error,
-          localFile: xFile,
-        );
-      });
-    }
-  }
-
-  Future<void> _retryUpload(String tempKey, XFile file) async {
-    setState(() {
-      _entries[tempKey] = _UploadEntry(
-        state: _UploadState.uploading,
-        localFile: file,
-      );
-    });
-    try {
-      final img = await _imageService.uploadImage(
-        companyId: widget.companyId,
-        auditId: widget.auditId,
-        itemId: widget.itemId,
-        file: file,
-      );
-      if (!mounted) return;
-      setState(() {
-        _entries.remove(tempKey);
-        _entries[img.id] = _UploadEntry(
-          state: _UploadState.uploaded,
-          image: img,
-        );
-      });
-      widget.onImagesChanged(_uploadedImages());
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _entries[tempKey] = _UploadEntry(
-          state: _UploadState.error,
-          localFile: file,
-        );
-      });
-    }
-  }
-
-  Future<void> _removeImage(String key, AuditItemImage image) async {
-    // Remoção otimista
-    setState(() => _entries.remove(key));
-    widget.onImagesChanged(_uploadedImages());
-    try {
-      await _imageService.deleteImage(
-        imageId: image.id,
-        storagePath: image.storagePath,
-      );
-    } catch (_) {
-      // Delete-failure é silencioso sem retry — o auditor continua normalmente
-      if (!mounted) return;
-      setState(() {
-        _entries[key] = _UploadEntry(
-          state: _UploadState.error,
-          image: image,
-        );
-      });
-    }
-  }
-
-  List<AuditItemImage> _uploadedImages() {
-    return _entries.values
-        .where((e) => e.state == _UploadState.uploaded && e.image != null)
-        .map((e) => e.image!)
-        .toList();
-  }
-
-  void _openFullscreen(BuildContext context, String signedUrl) {
-    showDialog(
-      context: context,
-      builder: (_) => Dialog.fullscreen(
-        backgroundColor: Colors.black87,
-        child: Stack(
-          children: [
-            Center(
-              child: InteractiveViewer(
-                child: Image.network(signedUrl, fit: BoxFit.contain),
-              ),
-            ),
-            Positioned(
-              top: 40,
-              right: 16,
-              child: IconButton(
-                icon: const Icon(Icons.close_rounded, color: Colors.white),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // read-only sem imagens: não renderiza nada
-    if (widget.readOnly && _entries.isEmpty) return const SizedBox.shrink();
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Botão câmera (oculto em read-only)
-        if (!widget.readOnly)
-          Tooltip(
-            message: 'Adicionar foto',
-            child: GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                      color: AppColors.accent.withValues(alpha: 0.3)),
-                ),
-                child: const Icon(Icons.photo_camera_outlined,
-                    size: 22, color: AppColors.accent),
-              ),
-            ),
-          ),
-        if (!widget.readOnly && _entries.isNotEmpty)
-          const SizedBox(width: 8),
-        // Strip de miniaturas
-        if (_entries.isNotEmpty)
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _entries.entries.map((entry) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: _ThumbTile(
-                      entryKey: entry.key,
-                      entry: entry.value,
-                      readOnly: widget.readOnly,
-                      onRetry: (key, file) => _retryUpload(key, file),
-                      onRemove: (key, img) => _removeImage(key, img),
-                      onTapUploaded: (signedUrl) =>
-                          _openFullscreen(context, signedUrl),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Miniatura individual com estados de upload
-// ---------------------------------------------------------------------------
-class _ThumbTile extends StatefulWidget {
-  final String entryKey;
-  final _UploadEntry entry;
-  final bool readOnly;
-  final void Function(String key, XFile file) onRetry;
-  final void Function(String key, AuditItemImage img) onRemove;
-  final void Function(String signedUrl) onTapUploaded;
-
-  const _ThumbTile({
-    required this.entryKey,
-    required this.entry,
-    required this.readOnly,
-    required this.onRetry,
-    required this.onRemove,
-    required this.onTapUploaded,
-  });
-
-  @override
-  State<_ThumbTile> createState() => _ThumbTileState();
-}
-
-class _ThumbTileState extends State<_ThumbTile> {
-  // Instanciado como campo conforme convenção CLAUDE.md (service instances como fields)
-  final _imageService = ImageService();
-  String? _signedUrl;
-  bool _loadingUrl = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.entry.state == _UploadState.uploaded &&
-        widget.entry.image != null) {
-      _loadSignedUrl();
-    }
-  }
-
-  @override
-  void didUpdateWidget(_ThumbTile oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.entry.state == _UploadState.uploaded &&
-        widget.entry.image != null &&
-        _signedUrl == null &&
-        !_loadingUrl) {
-      _loadSignedUrl();
-    }
-  }
-
-  Future<void> _loadSignedUrl() async {
-    if (_loadingUrl) return;
-    setState(() => _loadingUrl = true);
-    try {
-      final url =
-          await _imageService.getSignedUrl(widget.entry.image!.storagePath);
-      if (mounted) {
-        setState(() {
-          _signedUrl = url;
-          _loadingUrl = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => _loadingUrl = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 72,
-      height: 72,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: _buildContent(),
-      ),
-    );
-  }
-
-  Widget _buildContent() {
-    final entry = widget.entry;
-
-    if (entry.state == _UploadState.uploading) {
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          if (entry.localFile != null)
-            Opacity(
-              opacity: 0.5,
-              child:
-                  Image.file(File(entry.localFile!.path), fit: BoxFit.cover),
-            )
-          else
-            Container(color: AppTheme.of(context).background),
-          const Center(
-            child: SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: AppColors.accent,
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    if (entry.state == _UploadState.error) {
-      return GestureDetector(
-        onTap: entry.localFile != null
-            ? () => widget.onRetry(widget.entryKey, entry.localFile!)
-            : null,
-        child: Semantics(
-          label: 'Erro ao enviar foto. Toque para tentar novamente.',
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (entry.localFile != null)
-                Opacity(
-                  opacity: 0.4,
-                  child: Image.file(File(entry.localFile!.path),
-                      fit: BoxFit.cover),
-                )
-              else
-                Container(color: AppTheme.of(context).background),
-              const Center(
-                child: Icon(Icons.error_rounded,
-                    color: AppColors.error, size: 20),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Estado: uploaded
-    if (_signedUrl == null) {
-      return Container(
-        color: AppTheme.of(context).background,
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-                strokeWidth: 1.5, color: AppColors.accent),
-          ),
-        ),
-      );
-    }
-
-    return GestureDetector(
-      onTap: () => widget.onTapUploaded(_signedUrl!),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.network(_signedUrl!, fit: BoxFit.cover),
-          if (!widget.readOnly && entry.image != null)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Semantics(
-                label: 'Remover foto',
-                child: GestureDetector(
-                  onTap: () =>
-                      widget.onRemove(widget.entryKey, entry.image!),
-                  child: SizedBox(
-                    width: 44,
-                    height: 44,
-                    child: Center(
-                      child: Container(
-                        width: 20,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          color: AppColors.error,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.close_rounded,
-                            size: 14, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Bottom sheet para escolha de fonte de imagem
-// ---------------------------------------------------------------------------
-class _PickerSheet extends StatelessWidget {
-  const _PickerSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ListTile(
-          leading:
-              const Icon(Icons.camera_alt_rounded, color: AppColors.accent),
-          title: const Text('Tirar foto', style: TextStyle(fontSize: 14)),
-          onTap: () => Navigator.pop(context, ImageSource.camera),
-        ),
-        ListTile(
-          leading:
-              const Icon(Icons.photo_library_rounded, color: AppColors.accent),
-          title: const Text('Escolher da galeria',
-              style: TextStyle(fontSize: 14)),
-          onTap: () => Navigator.pop(context, ImageSource.gallery),
-        ),
-        const SizedBox(height: 8),
-      ],
-    );
-  }
-}
