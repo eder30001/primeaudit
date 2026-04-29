@@ -239,6 +239,40 @@ class _AuditTypesScreenState extends State<AuditTypesScreen> {
     );
   }
 
+  Future<void> _confirmDelete(AuditType type) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Excluir tipo de auditoria'),
+        content: Text(
+          'Deseja excluir "${type.name}"?\n\n'
+          'Tipos vinculados a auditorias existentes não podem ser excluídos.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await _service.deleteType(type.id);
+      _load();
+    } catch (e) {
+      final msg = e.toString().contains('foreign key') || e.toString().contains('violates')
+          ? 'Não é possível excluir: existem auditorias vinculadas a este tipo.'
+          : 'Erro ao excluir: $e';
+      _showError(msg);
+    }
+  }
+
   Widget _buildTypeCard(AuditType type) {
     final color = type.colorValue;
     return Card(
@@ -302,9 +336,14 @@ class _AuditTypesScreenState extends State<AuditTypesScreen> {
                     color: AppTheme.of(context).textSecondary),
                 onSelected: (v) {
                   if (v == 'edit') _showTypeForm(type);
+                  if (v == 'delete') _confirmDelete(type);
                 },
                 itemBuilder: (_) => const [
                   PopupMenuItem(value: 'edit', child: Text('Editar')),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Text('Excluir', style: TextStyle(color: Colors.red)),
+                  ),
                 ],
               )
             : Icon(Icons.chevron_right_rounded,

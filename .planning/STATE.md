@@ -65,6 +65,7 @@ None.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260423-qzs | Corrigir bug de ordenação e adicionar reorder de seções no TemplateBuilderScreen | 2026-04-23 | 0afdd83 | [260423-qzs-corrigir-bug-de-ordena-o-e-adicionar-reo](.planning/quick/260423-qzs-corrigir-bug-de-ordena-o-e-adicionar-reo/) |
+| 260429-q01 | Adicionar opção de excluir tipo de auditoria em AuditTypesScreen | 2026-04-29 | — | [260429-q01-delete-audit-type](.planning/quick/260429-q01-delete-audit-type/) |
 
 ### Blockers/Concerns
 
