@@ -59,6 +59,14 @@ class CorrectiveActionService {
     await _client.from('corrective_actions').update(updates).eq('id', id);
   }
 
+  Future<Set<String>> getItemIdsWithActions(String auditId) async {
+    final data = await _client
+        .from('corrective_actions')
+        .select('template_item_id')
+        .eq('audit_id', auditId);
+    return (data as List).map((e) => e['template_item_id'] as String).toSet();
+  }
+
   Future<void> deleteAction(String id) async {
     await _client.from('corrective_actions').delete().eq('id', id);
   }

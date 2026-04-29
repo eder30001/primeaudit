@@ -55,6 +55,7 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
   final _answerService = AuditAnswerService();
   final _auditService = AuditService();
   final _imageService = ImageService();
+  final _correctiveActionService = CorrectiveActionService();
 
   List<TemplateSection> _sections = [];   // seções com items populados
   List<TemplateItem> _allItems = [];      // todos os items para cálculos
@@ -389,6 +390,22 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
 
   // ── Finalizar ────────────────────────────────────────────────────────────
 
+  Future<List<String>> _checkNonConformingWithoutAction() async {
+    try {
+      final itemsWithActions = await _correctiveActionService
+          .getItemIdsWithActions(widget.audit.id);
+      return _allItems
+          .where((item) =>
+              CorrectiveActionService.isNonConforming(
+                  item.responseType, _answers[item.id]) &&
+              !itemsWithActions.contains(item.id))
+          .map((item) => item.question)
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
   Future<void> _finalize() async {
     // ── Guarda D-06: bloqueia finalização se há respostas com falha ───────
     if (_failedSaves.isNotEmpty) {
@@ -412,6 +429,49 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
         ),
       );
       return; // NÃO prossegue para o dialog de confirmação de finalização
+    }
+
+    // ── Guarda: alerta se há itens não-conformes sem ação corretiva ──────
+    final pendingItems = await _checkNonConformingWithoutAction();
+    if (pendingItems.isNotEmpty && mounted) {
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Ações corretivas pendentes'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${pendingItems.length} item(ns) não conforme(s) sem ação corretiva cadastrada:',
+              ),
+              const SizedBox(height: 8),
+              ...pendingItems.map(
+                (q) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text('• $q',
+                      style: const TextStyle(fontSize: 13)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text('Deseja finalizar mesmo assim?'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Voltar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style:
+                  TextButton.styleFrom(foregroundColor: AppColors.error),
+              child: const Text('Finalizar mesmo assim'),
+            ),
+          ],
+        ),
+      );
+      if (proceed != true) return;
     }
 
     final confirm = await showDialog<bool>(
@@ -1119,16 +1179,21 @@ class _ItemCardState extends State<_ItemCard> {
                 ],
               ),
             ),
-            // Imagens (Phase 9) — inserido entre observation toggle e criar ação corretiva
-            const SizedBox(height: 8),
-            _ImageStrip(
-              auditId: widget.audit?.id ?? '',
-              itemId: widget.item.id,
-              companyId: widget.companyId,
-              readOnly: widget.readOnly,
-              initialImages: widget.images,
-              onImagesChanged: widget.onImagesChanged,
-            ),
+            // Imagens — apenas em não conformidade (edit) ou se há imagens salvas (read-only)
+            if ((!widget.readOnly &&
+                    CorrectiveActionService.isNonConforming(
+                        widget.item.responseType, widget.answer)) ||
+                (widget.readOnly && widget.images.isNotEmpty)) ...[
+              const SizedBox(height: 8),
+              _ImageStrip(
+                auditId: widget.audit?.id ?? '',
+                itemId: widget.item.id,
+                companyId: widget.companyId,
+                readOnly: widget.readOnly,
+                initialImages: widget.images,
+                onImagesChanged: widget.onImagesChanged,
+              ),
+            ],
             if (widget.onCreateAction != null &&
                 CorrectiveActionService.isNonConforming(
                     widget.item.responseType, widget.answer) &&
@@ -1928,6 +1993,17 @@ class _ThumbTileState extends State<_ThumbTile> {
     super.initState();
     if (widget.entry.state == _UploadState.uploaded &&
         widget.entry.image != null) {
+      _loadSignedUrl();
+    }
+  }
+
+  @override
+  void didUpdateWidget(_ThumbTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.entry.state == _UploadState.uploaded &&
+        widget.entry.image != null &&
+        _signedUrl == null &&
+        !_loadingUrl) {
       _loadSignedUrl();
     }
   }
