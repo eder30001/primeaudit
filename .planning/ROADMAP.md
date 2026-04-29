@@ -11,7 +11,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 - [ ] **Phase 6: Templates** - Corrigir ordenação e habilitar reordenação manual de perguntas no builder
 - [x] **Phase 7: Dashboard** - Exibir indicadores reais de auditorias e ações no dashboard
 - [x] **Phase 8: Corrective Actions** - Criar, listar e gerenciar ações corretivas com fluxo de status CAPA
-- [ ] **Phase 9: Images** - Anexar e visualizar fotos por pergunta durante a execução da auditoria
+- [x] **Phase 9: Images** - Anexar e visualizar fotos por pergunta durante a execução da auditoria
 - [ ] **Phase 10: Reports** - Filtrar e visualizar relatórios de auditorias concluídas com gráficos
 - [ ] **Phase 11: Notifications** - Central de notificações in-app, email automático e push FCM
 - [ ] **Phase 12: Navigation Refactor** - FAB expandível nas telas principais, drawer simplificado
@@ -72,9 +72,9 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
   3. O auditor pode anexar mais de uma foto por pergunta e todas as miniaturas são exibidas
   4. Um upload com falha exibe indicador de erro no card da pergunta sem bloquear o salvamento das respostas
 **Plans**: 3 plans
-  - [ ] 09-01-PLAN.md — Wave 1: Migration SQL (audit_item_images + RLS + bucket audit-images) + supabase db push [BLOCKING] + pubspec image_picker + AndroidManifest permissions
-  - [ ] 09-02-PLAN.md — Wave 2: AuditItemImage model + ImageService (uploadImage, getImages, getSignedUrl, deleteImage)
-  - [ ] 09-03-PLAN.md — Wave 3: _ImageStrip + _ThumbTile + _PickerSheet widgets + _ItemCard injection + _load() images fetch + human verify
+  - [x] 09-01-PLAN.md — Wave 1: Migration SQL (audit_item_images + RLS + bucket audit-images) + supabase db push [BLOCKING] + pubspec image_picker + AndroidManifest permissions
+  - [x] 09-02-PLAN.md — Wave 2: AuditItemImage model + ImageService (uploadImage, getImages, getSignedUrl, deleteImage)
+  - [x] 09-03-PLAN.md — Wave 3: Camera em CreateCorrectiveActionScreen + _ActionRow por item + galeria no detalhe + corrective_action_id linking
 **UI hint**: yes
 
 ### Phase 10: Reports
@@ -120,7 +120,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 | 6. Templates | 0/2 | Not started | - |
 | 7. Dashboard | 2/2 | Complete | 2026-04-25 |
 | 8. Corrective Actions | 4/4 | Complete | 2026-04-27 |
-| 9. Images | 0/3 | Planned | - |
+| 9. Images | 3/3 | Complete | 2026-04-29 |
 | 10. Reports | 0/? | Not started | - |
 | 11. Notifications | 0/? | Not started | - |
 | 12. Navigation Refactor | 0/? | Not started | - |
