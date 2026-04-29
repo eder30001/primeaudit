@@ -54,6 +54,7 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
   final _templateService = AuditTemplateService();
   final _answerService = AuditAnswerService();
   final _auditService = AuditService();
+  final _imageService = ImageService();
 
   List<TemplateSection> _sections = [];   // seções com items populados
   List<TemplateItem> _allItems = [];      // todos os items para cálculos
@@ -61,6 +62,9 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
   // itemId → resposta | itemId → observação
   final Map<String, String> _answers = {};
   final Map<String, String> _observations = {};
+
+  // itemId → lista de imagens (carregadas no _load)
+  final Map<String, List<AuditItemImage>> _images = {};
 
   // Fila de retry: itemId → dados do save com falha
   final Map<String, _PendingSave> _failedSaves = {};
@@ -122,6 +126,24 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
         }
       }
 
+      // Bloco separado e resiliente — falha de rede ao carregar imagens não impede abertura do checklist
+      final imagesMap = <String, List<AuditItemImage>>{};
+      try {
+        final imagesList = await Future.wait(
+          items.map((item) => _imageService.getImages(
+            auditId: widget.audit.id,
+            itemId: item.id,
+          )),
+        );
+        for (int i = 0; i < items.length; i++) {
+          if (imagesList[i].isNotEmpty) {
+            imagesMap[items[i].id] = imagesList[i];
+          }
+        }
+      } catch (_) {
+        // Falha silenciosa — _images fica vazio, auditor continua sem pré-carregamento
+      }
+
       if (mounted) {
         setState(() {
           _sections = sections;
@@ -136,6 +158,7 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
               items: unsectioned,
             ));
           }
+          _images.addAll(imagesMap);
           _loading = false;
         });
       }
@@ -628,6 +651,12 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
                           ),
                         );
                       },
+                images: _images,
+                onImagesChanged: (itemId, updated) {
+                  setState(() => _images[itemId] = updated);
+                },
+                companyId:
+                    CompanyContextService.instance.activeCompanyId ?? '',
               ),
             ),
           ),
@@ -824,6 +853,9 @@ class _SectionBlock extends StatelessWidget {
   final AppTheme theme;
   final Audit? audit;
   final void Function(TemplateItem)? onCreateAction;
+  final Map<String, List<AuditItemImage>> images;
+  final void Function(String itemId, List<AuditItemImage>) onImagesChanged;
+  final String companyId;
 
   const _SectionBlock({
     required this.section,
@@ -836,6 +868,9 @@ class _SectionBlock extends StatelessWidget {
     required this.theme,
     this.audit,
     this.onCreateAction,
+    required this.images,
+    required this.onImagesChanged,
+    required this.companyId,
   });
 
   @override
@@ -888,6 +923,9 @@ class _SectionBlock extends StatelessWidget {
           theme: t,
           audit: audit,
           onCreateAction: onCreateAction,
+          images: images[item.id] ?? [],
+          onImagesChanged: (updated) => onImagesChanged(item.id, updated),
+          companyId: companyId,
         )),
 
         const SizedBox(height: 4),
@@ -910,6 +948,9 @@ class _ItemCard extends StatefulWidget {
   final AppTheme theme;
   final Audit? audit;
   final void Function(TemplateItem)? onCreateAction;
+  final List<AuditItemImage> images;
+  final void Function(List<AuditItemImage>) onImagesChanged;
+  final String companyId;
 
   const _ItemCard({
     required this.item,
@@ -922,6 +963,9 @@ class _ItemCard extends StatefulWidget {
     required this.theme,
     this.audit,
     this.onCreateAction,
+    required this.images,
+    required this.onImagesChanged,
+    required this.companyId,
   });
 
   @override
@@ -1074,6 +1118,16 @@ class _ItemCardState extends State<_ItemCard> {
                   ),
                 ],
               ),
+            ),
+            // Imagens (Phase 9) — inserido entre observation toggle e criar ação corretiva
+            const SizedBox(height: 8),
+            _ImageStrip(
+              auditId: widget.audit?.id ?? '',
+              itemId: widget.item.id,
+              companyId: widget.companyId,
+              readOnly: widget.readOnly,
+              initialImages: widget.images,
+              onImagesChanged: widget.onImagesChanged,
             ),
             if (widget.onCreateAction != null &&
                 CorrectiveActionService.isNonConforming(
