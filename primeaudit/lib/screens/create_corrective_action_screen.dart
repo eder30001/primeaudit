@@ -110,7 +110,7 @@ class _CreateCorrectiveActionScreenState
     try {
       final companyId = CompanyContextService.instance.activeCompanyId!;
       final currentUser = Supabase.instance.client.auth.currentUser!;
-      await _service.createAction(
+      final actionId = await _service.createAction(
         auditId: widget.audit.id,
         templateItemId: widget.item.id,
         title: widget.item.question,
@@ -121,6 +121,16 @@ class _CreateCorrectiveActionScreenState
         companyId: companyId,
         createdBy: currentUser.id,
       );
+
+      // Vincula as fotos já enviadas a esta ação específica
+      final uploadedIds = _photos
+          .where((p) => p.state == _PhotoState.uploaded && p.image != null)
+          .map((p) => p.image!.id)
+          .toList();
+      if (uploadedIds.isNotEmpty) {
+        await _imageService.linkImagesToAction(uploadedIds, actionId);
+      }
+
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
@@ -167,7 +177,7 @@ class _CreateCorrectiveActionScreenState
         final i = _photos.indexWhere((p) => p.key == key);
         if (i >= 0) _photos[i] = _photos[i].copyWith(state: _PhotoState.error);
       });
-      _snack('Erro ao enviar foto — toque na miniatura para tentar novamente.');
+      _snack('Upload falhou: $e');
     }
   }
 

@@ -12,6 +12,7 @@ class AuditItemImage {
   final String storagePath;
   final String createdBy;
   final DateTime createdAt;
+  final String? correctiveActionId;
 
   const AuditItemImage({
     required this.id,
@@ -21,6 +22,7 @@ class AuditItemImage {
     required this.storagePath,
     required this.createdBy,
     required this.createdAt,
+    this.correctiveActionId,
   });
 
   factory AuditItemImage.fromMap(Map<String, dynamic> map) {
@@ -32,6 +34,7 @@ class AuditItemImage {
       storagePath: map['storage_path'] as String,
       createdBy: map['created_by'] as String,
       createdAt: DateTime.parse(map['created_at'] as String),
+      correctiveActionId: map['corrective_action_id'] as String?,
     );
   }
 }

@@ -24,7 +24,7 @@ class CorrectiveActionService {
     return (data as List).map((e) => CorrectiveAction.fromMap(e as Map<String, dynamic>)).toList();
   }
 
-  Future<void> createAction({
+  Future<String> createAction({
     required String auditId,
     required String templateItemId,
     required String title,
@@ -34,7 +34,7 @@ class CorrectiveActionService {
     required String companyId,
     required String createdBy,
   }) async {
-    await _client.from('corrective_actions').insert({
+    final row = await _client.from('corrective_actions').insert({
       'audit_id': auditId,
       'template_item_id': templateItemId,
       'title': title,
@@ -44,7 +44,8 @@ class CorrectiveActionService {
       'status': 'aberta',
       'company_id': companyId,
       'created_by': createdBy,
-    });
+    }).select('id').single();
+    return row['id'] as String;
   }
 
   Future<void> updateStatus(String id, String newStatus,

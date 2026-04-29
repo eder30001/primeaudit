@@ -63,6 +63,7 @@ class _CorrectiveActionDetailScreenState
       final imgs = await _imageService.getImages(
         auditId: _action.auditId,
         itemId: _action.templateItemId,
+        correctiveActionId: _action.id,
       );
       final urls = <String, String>{};
       await Future.wait(imgs.map((img) async {

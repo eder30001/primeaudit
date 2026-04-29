@@ -63,18 +63,32 @@ class ImageService {
     return AuditItemImage.fromMap(row);
   }
 
-  /// Retorna lista de imagens associadas a um item de auditoria, ordenadas por created_at ASC.
+  /// Retorna lista de imagens de um item, ordenadas por created_at ASC.
+  /// Se [correctiveActionId] for informado, filtra apenas as imagens dessa ação.
   Future<List<AuditItemImage>> getImages({
     required String auditId,
     required String itemId,
+    String? correctiveActionId,
   }) async {
-    final rows = await _client
+    var q = _client
         .from('audit_item_images')
         .select()
         .eq('audit_id', auditId)
-        .eq('template_item_id', itemId)
-        .order('created_at');
+        .eq('template_item_id', itemId);
+    if (correctiveActionId != null) {
+      q = q.eq('corrective_action_id', correctiveActionId);
+    }
+    final rows = await q.order('created_at');
     return (rows as List).map((r) => AuditItemImage.fromMap(r)).toList();
+  }
+
+  /// Vincula imagens já salvas a uma ação corretiva específica.
+  Future<void> linkImagesToAction(List<String> imageIds, String actionId) async {
+    if (imageIds.isEmpty) return;
+    await _client
+        .from('audit_item_images')
+        .update({'corrective_action_id': actionId})
+        .inFilter('id', imageIds);
   }
 
   /// Gera signed URL com validade de 1 hora para exibição de imagem privada.
