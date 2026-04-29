@@ -59,6 +59,17 @@ class CorrectiveActionService {
     await _client.from('corrective_actions').update(updates).eq('id', id);
   }
 
+  Future<List<CorrectiveAction>> getActionsByAudit(String auditId) async {
+    final data = await _client
+        .from('corrective_actions')
+        .select('*, profiles!responsible_user_id(full_name), audits(title)')
+        .eq('audit_id', auditId)
+        .order('created_at', ascending: false);
+    return (data as List)
+        .map((e) => CorrectiveAction.fromMap(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<Set<String>> getItemIdsWithActions(String auditId) async {
     final data = await _client
         .from('corrective_actions')

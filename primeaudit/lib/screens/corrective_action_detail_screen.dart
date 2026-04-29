@@ -3,9 +3,11 @@ import '../core/app_colors.dart';
 import '../core/app_roles.dart';
 import '../core/app_theme.dart';
 import '../models/app_user.dart';
+import '../models/audit_item_image.dart';
 import '../models/corrective_action.dart';
 import '../services/company_context_service.dart';
 import '../services/corrective_action_service.dart';
+import '../services/image_service.dart';
 import '../services/user_service.dart';
 import 'corrective_actions_screen.dart' show CorrectiveActionStatusChip;
 
@@ -30,8 +32,12 @@ class _CorrectiveActionDetailScreenState
     extends State<CorrectiveActionDetailScreen> {
   final _service = CorrectiveActionService();
   final _userService = UserService();
+  final _imageService = ImageService();
   late CorrectiveAction _action;
   bool _isTransitioning = false;
+
+  List<AuditItemImage> _images = [];
+  final Map<String, String> _signedUrls = {};
 
   // Campo inline de "ação tomada" — preenchido pelo responsável antes de submeter
   final _resolutionCtrl = TextEditingController();
@@ -49,6 +55,50 @@ class _CorrectiveActionDetailScreenState
     super.initState();
     _action = widget.action;
     _resolutionCtrl.text = _action.resolutionNotes ?? '';
+    _loadImages();
+  }
+
+  Future<void> _loadImages() async {
+    try {
+      final imgs = await _imageService.getImages(
+        auditId: _action.auditId,
+        itemId: _action.templateItemId,
+      );
+      final urls = <String, String>{};
+      await Future.wait(imgs.map((img) async {
+        try {
+          urls[img.id] = await _imageService.getSignedUrl(img.storagePath);
+        } catch (_) {}
+      }));
+      if (mounted) setState(() { _images = imgs; _signedUrls.addAll(urls); });
+    } catch (_) {}
+  }
+
+  void _openFullscreen(String url) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog.fullscreen(
+        child: Stack(
+          children: [
+            Container(
+              color: Colors.black,
+              child: Center(
+                child: InteractiveViewer(child: Image.network(url)),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 16,
+              child: IconButton(
+                icon: const Icon(Icons.close_rounded,
+                    color: Colors.white, size: 28),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -256,6 +306,12 @@ class _CorrectiveActionDetailScreenState
                   _buildInfoCard(t, a, overdue),
                   const SizedBox(height: 16),
 
+                  // Fotos da não conformidade
+                  if (_images.isNotEmpty) ...[
+                    _buildPhotoCard(t),
+                    const SizedBox(height: 16),
+                  ],
+
                   // Campo inline "Ação tomada" — editável pelo responsável em em_andamento
                   if (!a.status.isFinal) _buildResolutionField(t, a),
 
@@ -345,6 +401,68 @@ class _CorrectiveActionDetailScreenState
               value:
                   '${a.createdAt.day}/${a.createdAt.month}/${a.createdAt.year}',
               theme: t,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoCard(AppTheme t) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: t.divider),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'FOTOS DA NÃO CONFORMIDADE',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: t.textSecondary,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _images.map((img) {
+                  final url = _signedUrls[img.id];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: GestureDetector(
+                      onTap: url != null ? () => _openFullscreen(url) : null,
+                      child: SizedBox(
+                        width: 80,
+                        height: 80,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: url != null
+                              ? Image.network(url, fit: BoxFit.cover)
+                              : Container(
+                                  color: t.background,
+                                  child: const Center(
+                                    child: SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 1.5),
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
           ],
         ),

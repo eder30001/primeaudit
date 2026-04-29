@@ -1,15 +1,18 @@
 import 'dart:math' show pow;
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/app_colors.dart';
 import '../core/app_theme.dart';
 import '../models/audit.dart';
 import '../models/audit_template.dart';
+import '../models/corrective_action.dart';
 import '../services/audit_answer_service.dart';
 import '../services/audit_service.dart';
 import '../services/audit_template_service.dart';
+import '../services/corrective_action_service.dart';
 import 'pending_save.dart';
 import 'create_corrective_action_screen.dart';
-import '../services/corrective_action_service.dart';
+import 'corrective_action_detail_screen.dart';
 
 // Alias interno: usamos `_PendingSave` na tela (convenção de classe privada
 // do projeto para tipos usados apenas dentro deste arquivo), mas a classe
@@ -33,6 +36,10 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
   final _answerService = AuditAnswerService();
   final _auditService = AuditService();
   final _correctiveActionService = CorrectiveActionService();
+
+  String _currentUserId = '';
+  String _currentUserRole = '';
+  final Map<String, List<CorrectiveAction>> _itemActions = {};
 
   List<TemplateSection> _sections = [];   // seções com items populados
   List<TemplateItem> _allItems = [];      // todos os items para cálculos
@@ -101,6 +108,23 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
           _observations[ans.templateItemId] = ans.observation!;
         }
       }
+
+      // Perfil do usuário logado (resiliente — não bloqueia abertura do checklist)
+      try {
+        final uid = Supabase.instance.client.auth.currentUser?.id;
+        if (uid != null) {
+          final profile = await Supabase.instance.client
+              .from('profiles')
+              .select('id, role')
+              .eq('id', uid)
+              .single();
+          _currentUserId = profile['id'] as String;
+          _currentUserRole = profile['role'] as String;
+        }
+      } catch (_) {}
+
+      // Ações corretivas desta auditoria agrupadas por item
+      await _reloadItemActions(notify: false);
 
       if (mounted) {
         setState(() {
@@ -345,6 +369,30 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
   }
 
   // ── Finalizar ────────────────────────────────────────────────────────────
+
+  Future<void> _reloadItemActions({bool notify = true}) async {
+    try {
+      final actions = await _correctiveActionService
+          .getActionsByAudit(widget.audit.id);
+      _itemActions.clear();
+      for (final action in actions) {
+        _itemActions.putIfAbsent(action.templateItemId, () => []).add(action);
+      }
+      if (notify && mounted) setState(() {});
+    } catch (_) {}
+  }
+
+  void _openActionDetail(CorrectiveAction action) {
+    Navigator.of(context)
+        .push(MaterialPageRoute(
+          builder: (_) => CorrectiveActionDetailScreen(
+            action: action,
+            currentUserId: _currentUserId,
+            currentUserRole: _currentUserRole,
+          ),
+        ))
+        .then((_) => _reloadItemActions());
+  }
 
   Future<List<String>> _checkNonConformingWithoutAction() async {
     try {
@@ -658,15 +706,19 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
                 onCreateAction: _isReadOnly
                     ? null
                     : (item) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => CreateCorrectiveActionScreen(
-                              audit: widget.audit,
-                              item: item,
-                            ),
-                          ),
-                        );
+                        Navigator.of(context)
+                            .push(MaterialPageRoute(
+                              builder: (_) => CreateCorrectiveActionScreen(
+                                audit: widget.audit,
+                                item: item,
+                              ),
+                            ))
+                            .then((_) => _reloadItemActions());
                       },
+                onViewAction: _openActionDetail,
+                itemActions: _itemActions,
+                currentUserId: _currentUserId,
+                currentUserRole: _currentUserRole,
               ),
             ),
           ),
@@ -863,6 +915,10 @@ class _SectionBlock extends StatelessWidget {
   final AppTheme theme;
   final Audit? audit;
   final void Function(TemplateItem)? onCreateAction;
+  final void Function(CorrectiveAction) onViewAction;
+  final Map<String, List<CorrectiveAction>> itemActions;
+  final String currentUserId;
+  final String currentUserRole;
 
   const _SectionBlock({
     required this.section,
@@ -875,6 +931,10 @@ class _SectionBlock extends StatelessWidget {
     required this.theme,
     this.audit,
     this.onCreateAction,
+    required this.onViewAction,
+    required this.itemActions,
+    required this.currentUserId,
+    required this.currentUserRole,
   });
 
   @override
@@ -927,6 +987,10 @@ class _SectionBlock extends StatelessWidget {
           theme: t,
           audit: audit,
           onCreateAction: onCreateAction,
+          onViewAction: onViewAction,
+          itemActions: itemActions[item.id] ?? [],
+          currentUserId: currentUserId,
+          currentUserRole: currentUserRole,
         )),
 
         const SizedBox(height: 4),
@@ -949,6 +1013,10 @@ class _ItemCard extends StatefulWidget {
   final AppTheme theme;
   final Audit? audit;
   final void Function(TemplateItem)? onCreateAction;
+  final void Function(CorrectiveAction) onViewAction;
+  final List<CorrectiveAction> itemActions;
+  final String currentUserId;
+  final String currentUserRole;
 
   const _ItemCard({
     required this.item,
@@ -961,6 +1029,10 @@ class _ItemCard extends StatefulWidget {
     required this.theme,
     this.audit,
     this.onCreateAction,
+    required this.onViewAction,
+    required this.itemActions,
+    required this.currentUserId,
+    required this.currentUserRole,
   });
 
   @override
@@ -1114,26 +1186,38 @@ class _ItemCardState extends State<_ItemCard> {
                 ],
               ),
             ),
-            if (widget.onCreateAction != null &&
-                CorrectiveActionService.isNonConforming(
-                    widget.item.responseType, widget.answer) &&
-                !widget.readOnly) ...[
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () => widget.onCreateAction!(widget.item),
-                child: Row(
-                  children: [
-                    Icon(Icons.add_task_rounded,
-                        size: 16, color: AppColors.accent),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Criar ação corretiva',
-                      style:
-                          TextStyle(fontSize: 12, color: AppColors.accent),
-                    ),
-                  ],
+            if (CorrectiveActionService.isNonConforming(
+                widget.item.responseType, widget.answer)) ...[
+              // Ações corretivas já criadas para este item
+              if (widget.itemActions.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                ...widget.itemActions.map((action) => _ActionRow(
+                      action: action,
+                      onTap: () => widget.onViewAction(action),
+                      theme: t,
+                    )),
+              ],
+              // Botão adicionar (apenas em edição)
+              if (widget.onCreateAction != null && !widget.readOnly) ...[
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () => widget.onCreateAction!(widget.item),
+                  child: Row(
+                    children: [
+                      Icon(Icons.add_task_rounded,
+                          size: 16, color: AppColors.accent),
+                      const SizedBox(width: 6),
+                      Text(
+                        widget.itemActions.isEmpty
+                            ? 'Criar ação corretiva'
+                            : 'Adicionar ação corretiva',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.accent),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ],
 
             if (_showObs) ...[
@@ -1636,3 +1720,54 @@ class _Badge extends StatelessWidget {
   }
 }
 
+
+// ---------------------------------------------------------------------------
+// Linha compacta de ação corretiva dentro do _ItemCard
+// ---------------------------------------------------------------------------
+class _ActionRow extends StatelessWidget {
+  final CorrectiveAction action;
+  final VoidCallback onTap;
+  final AppTheme theme;
+
+  const _ActionRow({
+    required this.action,
+    required this.onTap,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = action.status.chipText;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                action.title,
+                style: TextStyle(fontSize: 12, color: theme.textPrimary),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(action.status.label,
+                style: TextStyle(fontSize: 11, color: color)),
+            const SizedBox(width: 2),
+            Icon(Icons.chevron_right_rounded,
+                size: 16, color: theme.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+}
