@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Features & UX
 status: ready
-stopped_at: Phase 9 complete — IMG-01/02/03 entregues; Phase 10 (Reports) é o próximo
-last_updated: "2026-04-29T00:00:00Z"
-last_activity: 2026-04-29
+stopped_at: Phase 10 planejada — 3 planos, 2 waves (Wave 1: 10-02; Wave 2: 10-01, 10-03)
+last_updated: "2026-05-01T00:00:00Z"
+last_activity: 2026-05-01
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 11
+  total_plans: 14
   completed_plans: 7
-  percent: 50
+  percent: 55
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-18)
 
 **Core value:** Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencioso ou falha de rede não pode comprometer o trabalho do auditor.
-**Current focus:** Phase 10 — Reports
+**Current focus:** Phase 10 — Calendar Dashboard
 
 ## Current Position
 
-Phase: 9 COMPLETE — continue with Phase 10
-Plan: 03 complete
-Status: Phase 9 fully verified complete (all 3 plans, IMG-01/02/03)
+Phase: 10 PLANNED — ready to execute
+Plan: 3 plans ready (10-01, 10-02, 10-03)
+Status: Phase 10 fully planned (Calendar Dashboard — scope change from Reports per CONTEXT.md)
 Last activity: 2026-04-29
 
 Progress: [████░░░░░░] 55%
@@ -83,8 +83,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-27T00:00:00Z
-Stopped at: Phase 8 complete e verificado (ACT-01 a ACT-04). Phase 9 planejada (3 planos, 3 waves — pronta para executar).
-Resume file: .planning/phases/09-images/09-01-PLAN.md
-Next action: `/gsd-execute-phase 9`
-Next action: Execute Phase 9 — Images (09-01-PLAN.md: Migration SQL audit_item_images + RLS + bucket audit-images + image_picker)
+Last session: 2026-05-01T00:00:00Z
+Stopped at: Phase 10 planejada — Calendar Dashboard (3 planos: 10-01 Wave 2, 10-02 Wave 1, 10-03 Wave 2). Pronta para executar.
+Resume file: .planning/phases/10-reports/10-02-PLAN.md
+Next action: `/gsd-execute-phase 10`

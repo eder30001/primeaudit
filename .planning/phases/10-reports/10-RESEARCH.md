@@ -757,17 +757,19 @@ The `_audit()` factory from `dashboard_service_test.dart` can be reused or dupli
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Month navigation data strategy: re-bucket vs. lazy fetch**
    - What we know: The 10-UI-SPEC specifies a `_calendarData` map with per-month lazy fetch. The existing `_loadDashboard()` already fetches all company audits.
    - What's unclear: Whether the planner should add a `getAuditsForMonth()` service method for future-month navigation, or store `_allAudits` list and re-bucket in Dart.
    - Recommendation: Store `_allAudits` in state (minimal change to `_loadDashboard()`). On month navigation, re-bucket from `_allAudits` — no new network call, no caching complexity. Add `getAuditsForMonth()` only if audit volumes require optimization (not the case for this project per CONTEXT.md).
+   - **RESOLVED: Plan 01 stores `_allAudits` in state and re-buckets on `_prevMonth()`/`_nextMonth()` — no new service method.**
 
 2. **filterDate chip: pop-screen vs. in-state mutable field**
    - What we know: UI-SPEC says chip clears filter and shows all audits (implies staying on screen). Pop-screen approach is simpler but loses the user's scroll position.
    - What's unclear: Whether staying on `AuditsScreen` after clearing is required.
    - Recommendation: Use mutable `_activeDateFilter` initialized from `widget.filterDate`. Clearing sets it to `null`, staying on screen. This better matches the UI-SPEC intent.
+   - **RESOLVED: Plan 02 uses mutable `_activeDateFilter` (no `late`); chip `onDeleted` calls `setState(() => _activeDateFilter = null)` — stays on screen.**
 
 ---
 
