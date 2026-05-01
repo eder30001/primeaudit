@@ -83,6 +83,7 @@ class _AuthGate extends StatelessWidget {
             ),
           );
         }
+        
         final session = snapshot.data?.session ??
             Supabase.instance.client.auth.currentSession;
         return session != null ? const HomeScreen() : const LoginScreen();

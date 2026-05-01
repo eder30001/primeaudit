@@ -204,21 +204,4 @@ class AuditTemplateService {
     await _client.from('template_items').delete().eq('id', id);
   }
 
-  /// Reordena itens atualizando [order_index] via UPDATE individual por ID.
-  /// UPDATE evita o INSERT implícito do upsert, que pode falhar por RLS ou
-  /// por constraints NOT NULL em colunas não fornecidas.
-  Future<void> reorderItems(List<String> ids) async {
-    if (ids.isEmpty) return;
-    for (int i = 0; i < ids.length; i++) {
-      await _client.from('template_items').update({'order_index': i}).eq('id', ids[i]);
-    }
-  }
-
-  /// Reordena seções atualizando [order_index] via UPDATE individual por ID.
-  Future<void> reorderSections(List<String> ids) async {
-    if (ids.isEmpty) return;
-    for (int i = 0; i < ids.length; i++) {
-      await _client.from('template_sections').update({'order_index': i}).eq('id', ids[i]);
-    }
-  }
 }

@@ -358,38 +358,6 @@ class _TemplateBuilderScreenState extends State<TemplateBuilderScreen> {
     );
   }
 
-  // TMPL-02: persiste a nova ordem dos itens de uma seção após drag & drop.
-  // Em caso de falha, exibe SnackBar de erro e recarrega do banco para
-  // restaurar a ordem verdadeira (padrão do projeto — screens reload on error).
-  Future<void> _persistSectionOrder(TemplateSection section) async {
-    try {
-      await _service.reorderItems(section.items.map((i) => i.id).toList());
-    } catch (_) {
-      _showError('Erro ao salvar nova ordem. A ordem foi restaurada.');
-      if (mounted) _load();
-    }
-  }
-
-  // TMPL-02: persiste a nova ordem dos itens sem seção após drag & drop.
-  // Mesma semântica do _persistSectionOrder, mas para `_items`.
-  Future<void> _persistUnsectionedOrder() async {
-    try {
-      await _service.reorderItems(_items.map((i) => i.id).toList());
-    } catch (_) {
-      _showError('Erro ao salvar nova ordem. A ordem foi restaurada.');
-      if (mounted) _load();
-    }
-  }
-
-  // TMPL-02: persiste a nova ordem das seções após drag & drop.
-  Future<void> _persistSectionsOrder() async {
-    try {
-      await _service.reorderSections(_sections.map((s) => s.id).toList());
-    } catch (_) {
-      _showError('Erro ao salvar nova ordem das seções. A ordem foi restaurada.');
-      if (mounted) _load();
-    }
-  }
 
   void _showError(String msg) {
     if (!mounted) return;
@@ -453,52 +421,11 @@ class _TemplateBuilderScreenState extends State<TemplateBuilderScreen> {
               : ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                   children: [
-                    // Itens sem seção — drag & drop via ReorderableListView (TMPL-02)
                     if (_items.isNotEmpty) ...[
-                      ReorderableListView(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        buildDefaultDragHandles: true,
-                        onReorder: (int oldIndex, int newIndex) {
-                          if (oldIndex < newIndex) newIndex -= 1;
-                          setState(() {
-                            final item = _items.removeAt(oldIndex);
-                            _items.insert(newIndex, item);
-                          });
-                          _persistUnsectionedOrder();
-                        },
-                        children: [
-                          for (final item in _items)
-                            KeyedSubtree(
-                              key: ValueKey(item.id),
-                              child: _buildItemCard(item),
-                            ),
-                        ],
-                      ),
+                      for (final item in _items) _buildItemCard(item),
                       const SizedBox(height: 8),
                     ],
-                    // Seções — drag & drop via ReorderableListView (TMPL-02)
-                    if (_sections.isNotEmpty)
-                      ReorderableListView(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        buildDefaultDragHandles: false,
-                        onReorder: (int oldIndex, int newIndex) {
-                          if (oldIndex < newIndex) newIndex -= 1;
-                          setState(() {
-                            final section = _sections.removeAt(oldIndex);
-                            _sections.insert(newIndex, section);
-                          });
-                          _persistSectionsOrder();
-                        },
-                        children: [
-                          for (int i = 0; i < _sections.length; i++)
-                            KeyedSubtree(
-                              key: ValueKey(_sections[i].id),
-                              child: _buildSection(_sections[i], i),
-                            ),
-                        ],
-                      ),
+                    for (final section in _sections) _buildSection(section),
                   ],
                 ),
     );
@@ -526,7 +453,7 @@ class _TemplateBuilderScreenState extends State<TemplateBuilderScreen> {
     );
   }
 
-  Widget _buildSection(TemplateSection section, int sectionIndex) {
+  Widget _buildSection(TemplateSection section) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -540,13 +467,6 @@ class _TemplateBuilderScreenState extends State<TemplateBuilderScreen> {
           ),
           child: Row(
             children: [
-              ReorderableDragStartListener(
-                index: sectionIndex,
-                child: const Padding(
-                  padding: EdgeInsets.only(left: 4, right: 4),
-                  child: Icon(Icons.drag_handle_rounded, size: 18, color: AppColors.primary),
-                ),
-              ),
               const Icon(Icons.folder_outlined, size: 18, color: AppColors.primary),
               const SizedBox(width: 8),
               Expanded(child: Text(section.name,
@@ -621,28 +541,7 @@ class _TemplateBuilderScreenState extends State<TemplateBuilderScreen> {
             ),
           )
         else
-          // Items da seção — drag & drop via ReorderableListView (TMPL-02).
-          // Uma ReorderableListView POR seção — cross-section reorder é out of scope.
-          ReorderableListView(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            buildDefaultDragHandles: true,
-            onReorder: (int oldIndex, int newIndex) {
-              if (oldIndex < newIndex) newIndex -= 1;
-              setState(() {
-                final item = section.items.removeAt(oldIndex);
-                section.items.insert(newIndex, item);
-              });
-              _persistSectionOrder(section);
-            },
-            children: [
-              for (final item in section.items)
-                KeyedSubtree(
-                  key: ValueKey(item.id),
-                  child: _buildItemCard(item, inSection: true),
-                ),
-            ],
-          ),
+          for (final item in section.items) _buildItemCard(item, inSection: true),
         const SizedBox(height: 4),
       ],
     );
