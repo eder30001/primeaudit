@@ -12,7 +12,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 - [x] **Phase 7: Dashboard** - Exibir indicadores reais de auditorias e ações no dashboard
 - [x] **Phase 8: Corrective Actions** - Criar, listar e gerenciar ações corretivas com fluxo de status CAPA
 - [x] **Phase 9: Images** - Anexar e visualizar fotos por pergunta durante a execução da auditoria
-- [ ] **Phase 10: Reports** - Filtrar e visualizar relatórios de auditorias concluídas com gráficos
+- [ ] **Phase 10: Reports** - Calendário de auditorias no dashboard com indicadores de status por dia
 - [ ] **Phase 11: Notifications** - Central de notificações in-app, email automático e push FCM
 - [ ] **Phase 12: Navigation Refactor** - FAB expandível nas telas principais, drawer simplificado
 
@@ -78,15 +78,18 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 **UI hint**: yes
 
 ### Phase 10: Reports
-**Goal**: Usuário filtra auditorias concluídas por data e template e vê conformidade em lista e gráfico
-**Depends on**: Phase 7 (DashboardService patterns established; fl_chart package added in Phase 7 for DASH-03)
+**Goal**: Calendário mensal de auditorias no dashboard com indicadores de status por dia e navegação para lista filtrada por data
+**Depends on**: Phase 7 (HomeScreen _loadDashboard() patterns, AuditService.getAudits() established)
 **Requirements**: REP-01, REP-02, REP-03, REP-04
+**Scope note**: Original REP-01/02/03/04 (filter/list/chart reports screen) replaced per CONTEXT.md scope change with Calendar Dashboard (CAL-01/02/03). REQ IDs retained for traceability.
 **Success Criteria** (what must be TRUE):
-  1. Na tela de relatórios, o usuário seleciona um intervalo de datas e a lista atualiza mostrando apenas auditorias concluídas nesse período
-  2. O usuário seleciona um template específico e a lista filtra corretamente, podendo combinar filtro de data e template simultaneamente
-  3. Cada auditoria na lista exibe o percentual de conformidade calculado
-  4. Um gráfico de barras mostra a conformidade média agrupada por template para os dados filtrados
-**Plans**: TBD
+  1. O dashboard exibe um calendário mensal abaixo dos 4 KPI cards com indicadores coloridos por dia (azul=Novas, vermelho=Atrasadas, verde=Concluídas)
+  2. Tocar em um dia com auditorias navega para a tela de auditorias filtrada por aquele dia, com chip "Auditorias de DD/MM/YYYY"
+  3. O item "Relatórios" foi removido do drawer de navegação
+**Plans**: 3 plans
+  - [ ] 10-01-PLAN.md — Wave 1: Wave 0 test scaffolds (calendar_data_test.dart + audits_screen_date_filter_test.dart) + calendar widget in home_screen.dart + drawer removal
+  - [ ] 10-02-PLAN.md — Wave 1 (parallel): AuditsScreen filterDate param + dismissible chip + _filtered date extension
+  - [ ] 10-03-PLAN.md — Wave 2: Human visual + integration verification checkpoint
 **UI hint**: yes
 
 ### Phase 11: Notifications
@@ -121,7 +124,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 | 7. Dashboard | 2/2 | Complete | 2026-04-25 |
 | 8. Corrective Actions | 4/4 | Complete | 2026-04-27 |
 | 9. Images | 3/3 | Complete | 2026-04-29 |
-| 10. Reports | 0/? | Not started | - |
+| 10. Reports | 0/3 | Not started | - |
 | 11. Notifications | 0/? | Not started | - |
 | 12. Navigation Refactor | 0/? | Not started | - |
 
