@@ -69,11 +69,13 @@ extension _AuditFilterLabel on _AuditFilter {
 class AuditsScreen extends StatefulWidget {
   final String currentUserId;
   final String currentUserName;
+  final DateTime? filterDate; // NEW — optional, from calendar day tap (D-05)
 
   const AuditsScreen({
     super.key,
     required this.currentUserId,
     required this.currentUserName,
+    this.filterDate, // optional, defaults to null
   });
 
   @override
@@ -90,10 +92,12 @@ class _AuditsScreenState extends State<AuditsScreen> {
   _AuditFilter _filter = _AuditFilter.todas;
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
+  DateTime? _activeDateFilter; // mutable copy of widget.filterDate — can be cleared by chip
 
   @override
   void initState() {
     super.initState();
+    _activeDateFilter = widget.filterDate; // copy constructor param to mutable state
     _load();
     _searchCtrl.addListener(
       () => setState(() => _searchQuery = _searchCtrl.text.toLowerCase()),
@@ -119,6 +123,11 @@ class _AuditsScreenState extends State<AuditsScreen> {
     }
   }
 
+  static String _fmtDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/'
+      '${d.month.toString().padLeft(2, '0')}/'
+      '${d.year}';
+
   List<Audit> get _filtered {
     var list = _audits.where((a) {
       switch (_filter) {
@@ -138,6 +147,17 @@ class _AuditsScreenState extends State<AuditsScreen> {
         a.perimeterName?.toLowerCase().contains(_searchQuery) == true ||
         a.companyName.toLowerCase().contains(_searchQuery),
       ).toList();
+    }
+
+    // Date filter — applied last (D-05: same deadline ?? createdAt logic as calendar)
+    if (_activeDateFilter != null) {
+      final fd = _activeDateFilter!;
+      list = list.where((a) {
+        final effectiveDate = (a.deadline ?? a.createdAt).toLocal(); // Pitfall 1
+        return effectiveDate.year == fd.year &&
+            effectiveDate.month == fd.month &&
+            effectiveDate.day == fd.day;
+      }).toList();
     }
 
     return list;
@@ -307,6 +327,27 @@ class _AuditsScreenState extends State<AuditsScreen> {
             ),
           ),
           const SizedBox(height: 10),
+
+          // Date filter chip — shown only when _activeDateFilter is set
+          if (_activeDateFilter != null) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Wrap(
+                children: [
+                  Chip(
+                    label: Text(
+                      'Auditorias de ${_fmtDate(_activeDateFilter!)}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    deleteIcon: const Icon(Icons.close_rounded, size: 16),
+                    onDeleted: () =>
+                        setState(() => _activeDateFilter = null), // stays on screen — NOT Navigator.pop()
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -383,21 +424,27 @@ class _AuditsScreenState extends State<AuditsScreen> {
               Icon(Icons.assignment_outlined, size: 56, color: t.textSecondary),
               const SizedBox(height: 16),
               Text(
-                _searchQuery.isNotEmpty || _filter != _AuditFilter.todas
-                    ? 'Nenhuma auditoria encontrada'
+                _searchQuery.isNotEmpty ||
+                        _filter != _AuditFilter.todas ||
+                        _activeDateFilter != null
+                    ? (_activeDateFilter != null
+                        ? 'Nenhuma auditoria em ${_fmtDate(_activeDateFilter!)}'
+                        : 'Nenhuma auditoria encontrada')
                     : 'Nenhuma auditoria ainda',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600,
                     color: t.textPrimary),
               ),
               const SizedBox(height: 6),
               Text(
-                _searchQuery.isNotEmpty || _filter != _AuditFilter.todas
+                _searchQuery.isNotEmpty ||
+                        _filter != _AuditFilter.todas ||
+                        _activeDateFilter != null
                     ? 'Tente ajustar os filtros ou a busca.'
                     : 'Crie a primeira auditoria para começar.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: t.textSecondary, fontSize: 13),
               ),
-              if (_filter == _AuditFilter.todas && _searchQuery.isEmpty) ...[
+              if (_filter == _AuditFilter.todas && _searchQuery.isEmpty && _activeDateFilter == null) ...[
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
                   onPressed: _openNewAuditSheet,
