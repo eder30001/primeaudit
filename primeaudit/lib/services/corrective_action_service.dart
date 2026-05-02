@@ -94,10 +94,23 @@ class CorrectiveActionService {
     var query = _client
         .from('corrective_actions')
         .select('id')
-        .inFilter('status', ['aberta', 'em_andamento', 'em_avaliacao']);
+        .inFilter('status', ['aberta', 'em_andamento', 'em_avaliacao', 'em_analise', 'reaberta']);
     if (companyId != null) query = query.eq('company_id', companyId);
     final data = await query;
     return (data as List).length;
+  }
+
+  /// Cancela todas as ações corretivas abertas vinculadas a uma auditoria.
+  /// Chamado quando uma auditoria é cancelada (D-08: cascade cancel).
+  Future<void> cancelByAuditId(String auditId) async {
+    await _client
+        .from('corrective_actions')
+        .update({
+          'status': 'cancelada',
+          'updated_at': DateTime.now().toIso8601String(),
+        })
+        .eq('audit_id', auditId)
+        .not('status', 'in', '("cancelada","finalizada","aprovada")');
   }
 
   /// Determina se uma resposta para um item é não-conforme.
@@ -122,11 +135,15 @@ class CorrectiveActionService {
     }
   }
 
-  /// RBAC matrix de transição de status.
-  /// - admin/superuser/dev: todas as transições
-  /// - responsável: iniciar (aberta→em_andamento), submeter (em_andamento→em_avaliacao), reabrir (rejeitada→em_andamento)
-  /// - criador (não-responsável): iniciar, reabrir, aprovar, rejeitar
-  /// - cancelar: apenas admin
+  /// RBAC matrix de transição de status — novo fluxo:
+  ///   aberta → em_analise (responsável ou auditor envia resposta)
+  ///   em_analise → finalizada | reaberta (auditor/ADM analisa)
+  ///   reaberta → em_analise (responsável reenvia)
+  ///
+  /// Legado (backward compat para registros antigos):
+  ///   em_andamento → em_analise
+  ///   em_avaliacao → finalizada | reaberta
+  ///   rejeitada → em_analise
   static bool canTransitionTo({
     required String newStatus,
     required CorrectiveAction action,
@@ -137,8 +154,28 @@ class CorrectiveActionService {
 
     final isResponsible = action.responsibleUserId == userId;
     final isCreator = action.createdBy == userId;
+    final isAuditor = role == AppRole.auditor;
 
     switch (newStatus) {
+      // Responsável (ou auditor/criador) envia resposta → em análise
+      case 'em_analise':
+        return (isResponsible || isAuditor || isCreator) &&
+            (action.status == CorrectiveActionStatus.aberta ||
+                action.status == CorrectiveActionStatus.reaberta ||
+                // legado
+                action.status == CorrectiveActionStatus.emAndamento ||
+                action.status == CorrectiveActionStatus.rejeitada);
+      // Auditor ou criador finaliza
+      case 'finalizada':
+        return (isAuditor || isCreator) &&
+            (action.status == CorrectiveActionStatus.emAnalise ||
+                action.status == CorrectiveActionStatus.emAvaliacao); // legado
+      // Auditor ou criador rejeita → vai para reaberta
+      case 'reaberta':
+        return (isAuditor || isCreator) &&
+            (action.status == CorrectiveActionStatus.emAnalise ||
+                action.status == CorrectiveActionStatus.emAvaliacao); // legado
+      // Legado: transições do fluxo antigo
       case 'em_andamento':
         return (isResponsible || isCreator) &&
             (action.status == CorrectiveActionStatus.aberta ||
@@ -148,7 +185,6 @@ class CorrectiveActionService {
             action.status == CorrectiveActionStatus.emAndamento;
       case 'aprovada':
       case 'rejeitada':
-        // Criador (não-responsável) avalia; rejeição explicitamente restrita a criador/admin
         return isCreator &&
             !isResponsible &&
             action.status == CorrectiveActionStatus.emAvaliacao;

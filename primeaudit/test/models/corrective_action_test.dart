@@ -72,14 +72,18 @@ void main() {
     test('desconhecido -> aberta (fallback)', () => expect(CorrectiveActionStatus.fromDb('desconhecido'), equals(CorrectiveActionStatus.aberta)));
   });
 
-  // isFinal
+  // isFinal — novo fluxo: finalizada e cancelada são finais; rejeitada passou a ser
+  // legado não-final (responsável pode reenviar via transição legado → em_analise)
   group('CorrectiveActionStatus.isFinal', () {
-    test('aprovada e final', () => expect(CorrectiveActionStatus.aprovada.isFinal, isTrue));
-    test('rejeitada e final', () => expect(CorrectiveActionStatus.rejeitada.isFinal, isTrue));
+    test('aprovada e final (legado)', () => expect(CorrectiveActionStatus.aprovada.isFinal, isTrue));
+    test('finalizada e final (novo)', () => expect(CorrectiveActionStatus.finalizada.isFinal, isTrue));
     test('cancelada e final', () => expect(CorrectiveActionStatus.cancelada.isFinal, isTrue));
+    test('rejeitada NAO e final (legado reenviavel)', () => expect(CorrectiveActionStatus.rejeitada.isFinal, isFalse));
     test('aberta NAO e final', () => expect(CorrectiveActionStatus.aberta.isFinal, isFalse));
     test('emAndamento NAO e final', () => expect(CorrectiveActionStatus.emAndamento.isFinal, isFalse));
     test('emAvaliacao NAO e final', () => expect(CorrectiveActionStatus.emAvaliacao.isFinal, isFalse));
+    test('emAnalise NAO e final', () => expect(CorrectiveActionStatus.emAnalise.isFinal, isFalse));
+    test('reaberta NAO e final', () => expect(CorrectiveActionStatus.reaberta.isFinal, isFalse));
   });
 
   // isOverdue

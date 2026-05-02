@@ -3,10 +3,13 @@ import '../core/app_colors.dart';
 
 enum CorrectiveActionStatus {
   aberta,
-  emAndamento,
-  emAvaliacao,
-  aprovada,
-  rejeitada,
+  emAndamento,  // legado — mantido para backward compat
+  emAvaliacao,  // legado — mantido para backward compat
+  aprovada,     // legado — mantido para backward compat
+  rejeitada,    // legado — mantido para backward compat
+  emAnalise,    // novo: responsável respondeu, aguardando análise
+  finalizada,   // novo: auditor/ADM finalizou
+  reaberta,     // novo: rejeitada → responsável pode reenviar
   cancelada;
 
   String get dbValue {
@@ -16,6 +19,9 @@ enum CorrectiveActionStatus {
       case emAvaliacao: return 'em_avaliacao';
       case aprovada:    return 'aprovada';
       case rejeitada:   return 'rejeitada';
+      case emAnalise:   return 'em_analise';
+      case finalizada:  return 'finalizada';
+      case reaberta:    return 'reaberta';
       case cancelada:   return 'cancelada';
     }
   }
@@ -27,6 +33,9 @@ enum CorrectiveActionStatus {
       case emAvaliacao: return 'Em avaliação';
       case aprovada:    return 'Aprovada';
       case rejeitada:   return 'Rejeitada';
+      case emAnalise:   return 'Em análise';
+      case finalizada:  return 'Finalizada';
+      case reaberta:    return 'Reaberta';
       case cancelada:   return 'Cancelada';
     }
   }
@@ -38,6 +47,9 @@ enum CorrectiveActionStatus {
       case emAvaliacao: return Colors.purple.shade50;
       case aprovada:    return const Color(0xFFE8F5E9);
       case rejeitada:   return const Color(0xFFFFEBEE);
+      case emAnalise:   return Colors.blue.shade50;
+      case finalizada:  return const Color(0xFFE8F5E9);
+      case reaberta:    return Colors.amber.shade50;
       case cancelada:   return Colors.grey.shade100;
     }
   }
@@ -49,6 +61,9 @@ enum CorrectiveActionStatus {
       case emAvaliacao: return Colors.purple.shade800;
       case aprovada:    return const Color(0xFF2E7D32);
       case rejeitada:   return AppColors.error;
+      case emAnalise:   return Colors.blue.shade800;
+      case finalizada:  return const Color(0xFF2E7D32);
+      case reaberta:    return Colors.amber.shade800;
       case cancelada:   return Colors.grey.shade700;
     }
   }
@@ -60,12 +75,15 @@ enum CorrectiveActionStatus {
       case emAvaliacao: return Icons.rate_review_rounded;
       case aprovada:    return Icons.check_circle_rounded;
       case rejeitada:   return Icons.cancel_rounded;
+      case emAnalise:   return Icons.hourglass_top_rounded;
+      case finalizada:  return Icons.check_circle_rounded;
+      case reaberta:    return Icons.replay_rounded;
       case cancelada:   return Icons.block_rounded;
     }
   }
 
   bool get isFinal =>
-      this == aprovada || this == rejeitada || this == cancelada;
+      this == aprovada || this == finalizada || this == cancelada;
 
   static CorrectiveActionStatus fromDb(String? value) {
     switch (value) {
@@ -73,6 +91,9 @@ enum CorrectiveActionStatus {
       case 'em_avaliacao': return CorrectiveActionStatus.emAvaliacao;
       case 'aprovada':     return CorrectiveActionStatus.aprovada;
       case 'rejeitada':    return CorrectiveActionStatus.rejeitada;
+      case 'em_analise':   return CorrectiveActionStatus.emAnalise;
+      case 'finalizada':   return CorrectiveActionStatus.finalizada;
+      case 'reaberta':     return CorrectiveActionStatus.reaberta;
       case 'cancelada':    return CorrectiveActionStatus.cancelada;
       default:             return CorrectiveActionStatus.aberta;
     }

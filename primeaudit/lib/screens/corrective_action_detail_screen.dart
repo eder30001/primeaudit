@@ -382,11 +382,13 @@ class _CorrectiveActionDetailScreenState
               _divider(t),
               _InfoRow(label: 'Descrição', value: a.description!, theme: t),
             ],
-            // Ação tomada — exibida como read-only quando já preenchida e status é final ou em avaliação
+            // Ação tomada — exibida como read-only quando já preenchida e status é final ou em análise
             if (a.resolutionNotes != null &&
                 a.resolutionNotes!.isNotEmpty &&
                 (a.status.isFinal ||
-                    a.status == CorrectiveActionStatus.emAvaliacao)) ...[
+                    a.status == CorrectiveActionStatus.emAnalise ||
+                    a.status == CorrectiveActionStatus.emAvaliacao ||
+                    a.status == CorrectiveActionStatus.reaberta)) ...[
               _divider(t),
               _InfoRow(label: 'Ação tomada', value: a.resolutionNotes!, theme: t),
             ],
@@ -473,10 +475,11 @@ class _CorrectiveActionDetailScreenState
   }
 
   Widget _buildResolutionField(AppTheme t, CorrectiveAction a) {
-    // Campo editável: responsável em em_andamento
-    // Campo read-only informativo: em outros estados não-finais (mostrado no card acima se final)
-    final canEdit = _isResponsible &&
-        a.status == CorrectiveActionStatus.emAndamento;
+    // Campo editável: responsável (ou auditor) nas fases onde cabe resposta
+    final canEdit = (_isResponsible || _isAuditor) &&
+        (a.status == CorrectiveActionStatus.aberta ||
+            a.status == CorrectiveActionStatus.reaberta ||
+            a.status == CorrectiveActionStatus.emAndamento); // legado
 
     if (!canEdit && (a.resolutionNotes == null || a.resolutionNotes!.isEmpty)) {
       return const SizedBox.shrink();
@@ -583,25 +586,36 @@ class _CorrectiveActionDetailScreenState
     }
 
     switch (a.status) {
+      // Novo fluxo
       case CorrectiveActionStatus.aberta:
-        add('em_andamento', 'Iniciar ação');
+        add('em_analise', 'Enviar resposta');
         add('cancelada', 'Cancelar ação', destructive: true);
         break;
+      case CorrectiveActionStatus.emAnalise:
+        add('finalizada', 'Finalizar');
+        add('reaberta', 'Rejeitar', destructive: true);
+        break;
+      case CorrectiveActionStatus.reaberta:
+        add('em_analise', 'Reenviar para análise');
+        add('cancelada', 'Cancelar ação', destructive: true);
+        break;
+      case CorrectiveActionStatus.finalizada:
+      case CorrectiveActionStatus.cancelada:
+        break;
+      // Legado — ações antigas com status antigos continuam funcionando
       case CorrectiveActionStatus.emAndamento:
-        add('em_avaliacao', 'Enviar para avaliação');
+        add('em_analise', 'Enviar para análise');
         add('cancelada', 'Cancelar ação', destructive: true);
         break;
       case CorrectiveActionStatus.emAvaliacao:
-        add('aprovada', 'Aprovar');
-        add('rejeitada', 'Rejeitar ação', destructive: true);
-        add('cancelada', 'Cancelar ação', destructive: true);
+        add('finalizada', 'Finalizar');
+        add('reaberta', 'Rejeitar', destructive: true);
         break;
       case CorrectiveActionStatus.rejeitada:
-        add('em_andamento', 'Iniciar ação');
+        add('em_analise', 'Reenviar para análise');
         add('cancelada', 'Cancelar ação', destructive: true);
         break;
       case CorrectiveActionStatus.aprovada:
-      case CorrectiveActionStatus.cancelada:
         break;
     }
 

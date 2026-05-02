@@ -36,14 +36,16 @@ void main() {
       expect(a.auditorId, equals('u1'));
     });
 
-    test('parses createdAt as DateTime', () {
+    test('parses createdAt as local DateTime', () {
+      // fromMap applies .toLocal() to preserve timezone-aware parsing
       final a = Audit.fromMap(_fullAuditMap());
-      expect(a.createdAt, equals(DateTime.parse('2024-01-01T00:00:00.000Z')));
+      expect(a.createdAt, equals(DateTime.parse('2024-01-01T00:00:00.000Z').toLocal()));
     });
 
-    test('parses deadline as DateTime when present', () {
+    test('parses deadline as date-only local DateTime (no UTC day shift)', () {
+      // _parseDateOnly extracts date from UTC to prevent UTC→local day-before bug
       final a = Audit.fromMap(_fullAuditMap());
-      expect(a.deadline, equals(DateTime.parse('2024-06-01T00:00:00.000Z')));
+      expect(a.deadline, equals(DateTime(2024, 6, 1)));
     });
 
     test('deadline is null when absent', () {

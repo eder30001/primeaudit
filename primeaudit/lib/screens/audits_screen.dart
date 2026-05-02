@@ -9,6 +9,7 @@ import '../models/perimeter.dart';
 import '../services/audit_service.dart';
 import '../services/audit_template_service.dart';
 import '../services/company_context_service.dart';
+import '../services/corrective_action_service.dart';
 import '../services/perimeter_service.dart';
 
 // ---------------------------------------------------------------------------
@@ -84,6 +85,7 @@ class AuditsScreen extends StatefulWidget {
 
 class _AuditsScreenState extends State<AuditsScreen> {
   final _auditService = AuditService();
+  final _correctiveActionService = CorrectiveActionService();
 
   List<Audit> _audits = [];
   bool _isLoading = true;
@@ -236,6 +238,8 @@ class _AuditsScreenState extends State<AuditsScreen> {
           _snack('"${audit.title}" descartada');
         } else {
           await _auditService.closeAudit(audit.id);
+          // Cascade: cancela ações corretivas abertas vinculadas a esta auditoria
+          await _correctiveActionService.cancelByAuditId(audit.id);
           _snack('"${audit.title}" encerrada');
         }
         _load();

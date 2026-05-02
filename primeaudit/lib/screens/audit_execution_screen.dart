@@ -253,6 +253,8 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
         await _auditService.deleteAudit(widget.audit.id);
       } else {
         await _auditService.closeAudit(widget.audit.id);
+        // Cascade: cancela ações corretivas abertas vinculadas a esta auditoria
+        await _correctiveActionService.cancelByAuditId(widget.audit.id);
       }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
