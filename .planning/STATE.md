@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Features & UX
 status: executing
-stopped_at: Phase 10 Wave 1 complete (10-02 done) — Wave 2 next (10-01, 10-03)
+stopped_at: Phase 10 Wave 2 executing — 10-01 done, aguardando checkpoint humano 10-03
 last_updated: "2026-05-02T00:00:00Z"
 last_activity: 2026-05-02
 progress:
