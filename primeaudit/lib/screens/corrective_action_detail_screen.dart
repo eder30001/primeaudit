@@ -382,13 +382,13 @@ class _CorrectiveActionDetailScreenState
               _divider(t),
               _InfoRow(label: 'Descrição', value: a.description!, theme: t),
             ],
-            // Ação tomada — exibida como read-only quando já preenchida e status é final ou em análise
+            // Ação tomada — read-only quando preenchida e status não permite edição
+            // reaberta fica FORA desta lista — responsável pode editar nesse estado
             if (a.resolutionNotes != null &&
                 a.resolutionNotes!.isNotEmpty &&
                 (a.status.isFinal ||
                     a.status == CorrectiveActionStatus.emAnalise ||
-                    a.status == CorrectiveActionStatus.emAvaliacao ||
-                    a.status == CorrectiveActionStatus.reaberta)) ...[
+                    a.status == CorrectiveActionStatus.emAvaliacao)) ...[
               _divider(t),
               _InfoRow(label: 'Ação tomada', value: a.resolutionNotes!, theme: t),
             ],
