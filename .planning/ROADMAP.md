@@ -88,7 +88,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
   3. O item "Relatórios" foi removido do drawer de navegação
 **Plans**: 3 plans
   - [ ] 10-01-PLAN.md — Wave 2 (depends on 10-02): Wave 0 test scaffolds (calendar_data_test.dart + audits_screen_date_filter_test.dart) + calendar widget in home_screen.dart + drawer removal
-  - [ ] 10-02-PLAN.md — Wave 1 (parallel): AuditsScreen filterDate param + dismissible chip + _filtered date extension
+  - [x] 10-02-PLAN.md — Wave 1 (parallel): AuditsScreen filterDate param + dismissible chip + _filtered date extension (completed 2026-05-02)
   - [ ] 10-03-PLAN.md — Wave 2: Human visual + integration verification checkpoint
 **UI hint**: yes
 
