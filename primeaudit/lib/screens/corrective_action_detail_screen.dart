@@ -48,6 +48,7 @@ class _CorrectiveActionDetailScreenState
   bool get _isResponsible =>
       _action.responsibleUserId == widget.currentUserId;
   bool get _isCreator => _action.createdBy == widget.currentUserId;
+  bool get _isAuditor => widget.currentUserRole == AppRole.auditor;
   bool get _canInteract => _isAdmin || _isResponsible || _isCreator;
 
   @override
@@ -317,7 +318,7 @@ class _CorrectiveActionDetailScreenState
                   if (!a.status.isFinal) _buildResolutionField(t, a),
 
                   // Botão alterar responsável — visível ao criador em status não-final
-                  if ((_isCreator || _isAdmin) && !a.status.isFinal) ...[
+                  if ((_isAdmin || _isAuditor || _isResponsible || _isCreator) && !a.status.isFinal) ...[
                     const SizedBox(height: 8),
                     OutlinedButton.icon(
                       onPressed: _changeResponsible,
