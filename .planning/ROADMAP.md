@@ -12,7 +12,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 - [x] **Phase 7: Dashboard** - Exibir indicadores reais de auditorias e ações no dashboard
 - [x] **Phase 8: Corrective Actions** - Criar, listar e gerenciar ações corretivas com fluxo de status CAPA
 - [x] **Phase 9: Images** - Anexar e visualizar fotos por pergunta durante a execução da auditoria
-- [ ] **Phase 10: Reports** - Calendário de auditorias no dashboard com indicadores de status por dia
+- [x] **Phase 10: Reports** - Calendário de auditorias no dashboard com indicadores de status por dia (completed 2026-05-02)
 - [ ] **Phase 11: Notifications** - Central de notificações in-app, email automático e push FCM
 - [ ] **Phase 12: Navigation Refactor** - FAB expandível nas telas principais, drawer simplificado
 
@@ -124,7 +124,7 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 | 7. Dashboard | 2/2 | Complete | 2026-04-25 |
 | 8. Corrective Actions | 4/4 | Complete | 2026-04-27 |
 | 9. Images | 3/3 | Complete | 2026-04-29 |
-| 10. Reports | 0/3 | Not started | - |
+| 10. Reports | 3/3 | Complete | 2026-05-02 |
 | 11. Notifications | 0/? | Not started | - |
 | 12. Navigation Refactor | 0/? | Not started | - |
 
