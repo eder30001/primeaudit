@@ -42,6 +42,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _openActions = 0;
   int _companiesCount = 0;
   bool _dashboardLoading = false;
+  DateTime _calendarMonth = DateTime(DateTime.now().year, DateTime.now().month);
+  Map<String, List<Audit>> _calendarData = {};
+  String? _calendarError;
+  List<Audit> _allAudits = []; // retained for re-bucketing on month navigation (no extra request)
 
   @override
   void initState() {
@@ -100,6 +104,10 @@ class _HomeScreenState extends State<HomeScreen> {
         companiesCount = await _dashboardService.getCompaniesCount();
       }
 
+      // Calendar bucketing — reuses same 'audits' list, zero extra request (CAL-01)
+      final calendarData = _buildCalendarData(
+          audits, _calendarMonth.year, _calendarMonth.month);
+
       if (mounted) {
         setState(() {
           _totalAudits = total;
@@ -107,12 +115,94 @@ class _HomeScreenState extends State<HomeScreen> {
           _overdueAudits = overdue;
           _openActions = openActions;
           _companiesCount = companiesCount;
+          _allAudits = audits;
+          _calendarData = calendarData;
+          _calendarError = null;
         });
       }
-    } catch (_) {
+    } catch (e) {
+      if (mounted) setState(() => _calendarError = e.toString());
     } finally {
       if (mounted) setState(() => _dashboardLoading = false);
     }
+  }
+
+  // ── Calendar helpers ──────────────────────────────────────────────────────────
+
+  Map<String, List<Audit>> _buildCalendarData(
+      List<Audit> audits, int year, int month) {
+    final Map<String, List<Audit>> data = {};
+    for (final audit in audits) {
+      if (audit.status == AuditStatus.cancelada) continue; // D-04
+      final effectiveDate =
+          (audit.deadline ?? audit.createdAt).toLocal(); // D-03 + UTC pitfall fix — REQUIRED
+      if (effectiveDate.year == year && effectiveDate.month == month) {
+        final key =
+            '${effectiveDate.year}-'
+            '${effectiveDate.month.toString().padLeft(2, "0")}-'
+            '${effectiveDate.day.toString().padLeft(2, "0")}';
+        data.putIfAbsent(key, () => []).add(audit);
+      }
+    }
+    return data;
+  }
+
+  void _prevMonth() {
+    setState(() {
+      _calendarMonth =
+          DateTime(_calendarMonth.year, _calendarMonth.month - 1);
+      _calendarData = _buildCalendarData(
+          _allAudits, _calendarMonth.year, _calendarMonth.month);
+    });
+  }
+
+  void _nextMonth() {
+    setState(() {
+      _calendarMonth =
+          DateTime(_calendarMonth.year, _calendarMonth.month + 1);
+      _calendarData = _buildCalendarData(
+          _allAudits, _calendarMonth.year, _calendarMonth.month);
+    });
+  }
+
+  void _onDayTap(DateTime date) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => AuditsScreen(
+        currentUserId: _authService.currentUser?.id ?? '',
+        currentUserName: _name,
+        filterDate: date, // NEW optional param added in Plan 02
+      ),
+    ));
+  }
+
+  Widget _buildCalendar() {
+    if (_dashboardLoading) {
+      return const SizedBox(
+        height: 160,
+        child: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+    if (_calendarError != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Text(
+          'Erro ao carregar calendário. Puxe para atualizar.',
+          style: TextStyle(
+            color: AppTheme.of(context).textSecondary,
+            fontSize: 13,
+          ),
+        ),
+      );
+    }
+    return _CalendarWidget(
+      month: _calendarMonth,
+      data: _calendarData,
+      onDayTap: _onDayTap,
+      onPrevMonth: _prevMonth,
+      onNextMonth: _nextMonth,
+    );
   }
 
   Future<void> _logout() async {
@@ -272,11 +362,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         .then((_) => _loadDashboard());
                   },
                 ),
-                _drawerItem(
-                  icon: Icons.bar_chart_rounded,
-                  title: 'Relatórios',
-                  onTap: () => Navigator.of(context).pop(), // próxima tela
-                ),
                 const Divider(indent: 16, endIndent: 16),
                 _drawerItem(
                   icon: Icons.person_outline_rounded,
@@ -421,6 +506,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+            Text(
+              'Calendário de Auditorias',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.of(context).textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildCalendar(),
           ],
         ),
       ),
@@ -493,6 +589,265 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+}
+
+// ── Calendar private widgets ───────────────────────────────────────────────────
+
+const _monthNames = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
+
+class _CalendarWidget extends StatelessWidget {
+  final DateTime month;
+  final Map<String, List<Audit>> data;
+  final void Function(DateTime) onDayTap;
+  final VoidCallback onPrevMonth;
+  final VoidCallback onNextMonth;
+
+  const _CalendarWidget({
+    required this.month,
+    required this.data,
+    required this.onDayTap,
+    required this.onPrevMonth,
+    required this.onNextMonth,
+  });
+
+  int _daysInMonth(int year, int m) => DateTime(year, m + 1, 0).day;
+
+  int _firstWeekdayOffset(int year, int m) {
+    // Dart weekday: Mon=1, Sun=7. Calendar is Sunday-first (offset 0).
+    final wd = DateTime(year, m, 1).weekday;
+    return wd == 7 ? 0 : wd;
+  }
+
+  String _dateKey(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, "0")}-'
+      '${d.day.toString().padLeft(2, "0")}';
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTheme.of(context);
+    final monthLabel = '${_monthNames[month.month - 1]} ${month.year}';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: t.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: t.divider),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Month navigation header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left_rounded),
+                color: AppColors.primary,
+                onPressed: onPrevMonth,
+              ),
+              Expanded(
+                child: Text(
+                  monthLabel,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right_rounded),
+                color: AppColors.primary,
+                onPressed: onNextMonth,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Weekday headers: Dom Seg Ter Qua Qui Sex Sáb
+          Row(
+            children: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+                .map(
+                  (d) => Expanded(
+                    child: Text(
+                      d,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: t.textSecondary,
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 4),
+          // Day grid
+          _buildGrid(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGrid(BuildContext context) {
+    final today = DateTime.now();
+    final daysCount = _daysInMonth(month.year, month.month);
+    final offset = _firstWeekdayOffset(month.year, month.month);
+    // Build flat list: null = padding cell, int = day number
+    final cells = <int?>[
+      ...List<int?>.filled(offset, null),
+      ...List.generate(daysCount, (i) => i + 1),
+    ];
+    // Pad to multiple of 7
+    while (cells.length % 7 != 0) {
+      cells.add(null);
+    }
+    final rows = <TableRow>[];
+    for (var i = 0; i < cells.length; i += 7) {
+      rows.add(TableRow(
+        children: List.generate(7, (j) {
+          final day = cells[i + j];
+          if (day == null) return const SizedBox(height: 52);
+          final date = DateTime(month.year, month.month, day);
+          final isToday = date.year == today.year &&
+              date.month == today.month &&
+              date.day == today.day;
+          final key = _dateKey(date);
+          final dayAudits = data[key] ?? [];
+          return _DayCell(
+            day: day,
+            isToday: isToday,
+            audits: dayAudits,
+            onTap: dayAudits.isNotEmpty ? () => onDayTap(date) : null,
+          );
+        }),
+      ));
+    }
+    return Table(
+      defaultColumnWidth: const FlexColumnWidth(),
+      children: rows,
+    );
+  }
+}
+
+class _DayCell extends StatelessWidget {
+  final int day;
+  final bool isToday;
+  final List<Audit> audits;
+  final VoidCallback? onTap; // null = not tappable (D-06)
+
+  const _DayCell({
+    required this.day,
+    required this.isToday,
+    required this.audits,
+    this.onTap,
+  });
+
+  int _novas() => audits
+      .where((a) =>
+          a.status == AuditStatus.rascunho ||
+          a.status == AuditStatus.emAndamento)
+      .length;
+
+  int _atrasadas() =>
+      audits.where((a) => a.status == AuditStatus.atrasada).length;
+
+  int _concluidas() =>
+      audits.where((a) => a.status == AuditStatus.concluida).length;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTheme.of(context);
+    final hasAudits = audits.isNotEmpty;
+    final novas = _novas();
+    final atrasadas = _atrasadas();
+    final concluidas = _concluidas();
+
+    Widget dayNumber = Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isToday
+            ? AppColors.accent
+            : (hasAudits ? t.surface : Colors.transparent),
+        border: isToday
+            ? null
+            : (hasAudits ? Border.all(color: t.divider) : null),
+      ),
+      child: Center(
+        child: Text(
+          '$day',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+            color: isToday
+                ? Colors.white
+                : (hasAudits ? t.textPrimary : t.textSecondary),
+          ),
+        ),
+      ),
+    );
+
+    Widget dotRow = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (novas > 0)
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.accent,
+            ),
+          ),
+        if (novas > 0 && (atrasadas > 0 || concluidas > 0))
+          const SizedBox(width: 4),
+        if (atrasadas > 0)
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.error,
+            ),
+          ),
+        if (atrasadas > 0 && concluidas > 0) const SizedBox(width: 4),
+        if (concluidas > 0)
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.green,
+            ),
+          ),
+        // If no dots, reserve space to maintain cell height
+        if (novas == 0 && atrasadas == 0 && concluidas == 0)
+          const SizedBox(height: 10),
+      ],
+    );
+
+    Widget cell = SizedBox(
+      height: 52,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          dayNumber,
+          const SizedBox(height: 4),
+          dotRow,
+        ],
+      ),
+    );
+
+    if (onTap != null) {
+      return GestureDetector(onTap: onTap, child: cell);
+    }
+    return cell;
   }
 }
 
