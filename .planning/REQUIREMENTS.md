@@ -42,13 +42,13 @@
 
 ### Navegação (NAV)
 
-- [ ] **NAV-01**: FAB expandível nas telas principais dá acesso a Dashboard, Auditorias, Ações Corretivas, Relatórios e Notificações
-- [ ] **NAV-02**: Menu lateral (drawer) exibe apenas Perfil e Configurações — demais itens removidos
+- [~] ~~**NAV-01**: FAB expandível nas telas principais dá acesso a Dashboard, Auditorias, Ações Corretivas, Relatórios e Notificações~~ (Cancelled 2026-05-02)
+- [~] ~~**NAV-02**: Menu lateral (drawer) exibe apenas Perfil e Configurações — demais itens removidos~~ (Cancelled 2026-05-02)
 
 ### Templates (TMPL)
 
-- [ ] **TMPL-01**: Perguntas são exibidas na ordem correta (order_index) na tela de execução da auditoria
-- [ ] **TMPL-02**: Usuário pode reordenar perguntas no template builder via drag & drop com persistência no banco
+- [~] ~~**TMPL-01**: Perguntas são exibidas na ordem correta (order_index) na tela de execução da auditoria~~ (Cancelled 2026-05-02)
+- [~] ~~**TMPL-02**: Usuário pode reordenar perguntas no template builder via drag & drop com persistência no banco~~ (Cancelled 2026-05-02)
 
 ---
 
@@ -95,8 +95,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TMPL-01 | Phase 6 | Pending |
-| TMPL-02 | Phase 6 | Pending |
+| TMPL-01 | Phase 6 | Cancelled — 2026-05-02 |
+| TMPL-02 | Phase 6 | Cancelled — 2026-05-02 |
 | DASH-01 | Phase 7 | Complete — 2026-04-25 |
 | DASH-02 | Phase 7 | Complete — 2026-04-25 |
 | DASH-03 | Phase 7 | Complete — 2026-04-25 |
@@ -114,8 +114,8 @@
 | NOTIF-01 | Phase 11 | Pending |
 | NOTIF-02 | Phase 11 | Pending |
 | NOTIF-03 | Phase 11 | Pending |
-| NAV-01 | Phase 12 | Pending |
-| NAV-02 | Phase 12 | Pending |
+| NAV-01 | Phase 12 | Cancelled — 2026-05-02 |
+| NAV-02 | Phase 12 | Cancelled — 2026-05-02 |
 
 ---
 

@@ -1,25 +1,10 @@
 # PrimeAudit
 
-## Current Milestone: v1.1 Features & UX
-
-**Goal:** Adicionar as funcionalidades core que tornam o app utilizável em produção — dashboard, relatórios, ações corretivas e melhorias de UX.
-
-**Target features:**
-- Dashboard com indicadores de auditorias (US-01)
-- Menu flutuante FAB para navegação (US-02)
-- Tela de relatórios com filtros (US-03)
-- Tela de ações corretivas (US-04)
-- Upload de imagens nas perguntas (US-05)
-- Criação de ações diretamente nas auditorias (US-06)
-- Notificações e email automático (US-07)
-- Ordenação automática de perguntas no template (US-08)
-- Reordenação manual drag & drop ou botões (US-09)
-
----
-
 ## What This Is
 
 App Flutter para realização de auditorias industriais em campo. Auditores executam checklists configuráveis por template, registrando respostas por item com cálculo automático de conformidade ponderada. O backend é Supabase (auth, banco, RLS) e o app suporta múltiplas empresas com RBAC por perfil.
+
+Funcionalidades ativas: dashboard com KPIs reais, ações corretivas com fluxo CAPA completo, upload de fotos por pergunta, e calendário de auditorias no dashboard.
 
 ## Core Value
 
@@ -29,45 +14,54 @@ Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencios
 
 ### Validated
 
-- ✓ Autenticação email/senha com perfis RBAC (superuser, admin, auditor, viewer) — existente
-- ✓ Scoping por empresa via CompanyContextService — existente
-- ✓ Templates de auditoria com itens configuráveis (tipos: ok_nok, yes_no, scale_1_5, percentage, text, selection) — existente
-- ✓ Fluxo completo de auditorias: criação (4 etapas), execução, encerramento/cancelamento — existente
-- ✓ Cálculo de conformidade ponderado por peso e tipo de resposta — existente
-- ✓ Seleção de perímetro hierárquico em cascata — existente
-- ✓ Tema claro/escuro via ValueNotifier — existente
-- ✓ Migrations SQL idempotentes para Supabase — existente
+- ✓ Autenticação email/senha com perfis RBAC (superuser, admin, auditor, viewer) — v1.0
+- ✓ Scoping por empresa via CompanyContextService — v1.0
+- ✓ Templates de auditoria com itens configuráveis (tipos: ok_nok, yes_no, scale_1_5, percentage, text, selection) — v1.0
+- ✓ Fluxo completo de auditorias: criação (4 etapas), execução, encerramento/cancelamento — v1.0
+- ✓ Cálculo de conformidade ponderado por peso e tipo de resposta — v1.0
+- ✓ Seleção de perímetro hierárquico em cascata — v1.0
+- ✓ Tema claro/escuro via ValueNotifier — v1.0
+- ✓ Migrations SQL idempotentes para Supabase — v1.0
+- ✓ Dashboard com KPIs reais: total, pendentes, atrasadas, ações abertas (scoped por empresa, RBAC) — v1.1 Phase 7
+- ✓ Pull-to-refresh no dashboard — v1.1 Phase 7
+- ✓ Gráfico de conformidade média por template (fl_chart) — v1.1 Phase 7
+- ✓ Ações corretivas com fluxo CAPA completo (6 estados, RBAC por role) — v1.1 Phase 8
+- ✓ Criação de ação vinculada a pergunta durante execução — v1.1 Phase 8
+- ✓ Badge de ações abertas na navegação — v1.1 Phase 8
+- ✓ Upload e visualização de fotos por pergunta (Supabase Storage) — v1.1 Phase 9
+- ✓ Múltiplas imagens por pergunta com miniaturas inline — v1.1 Phase 9
+- ✓ Calendário mensal de auditorias no dashboard com indicadores por dia — v1.1 Phase 10
+- ✓ Navegação AuditsScreen filtrada por data a partir do calendário — v1.1 Phase 10
 
 ### Active
 
-- [x] Dashboard com indicadores: total de auditorias, pendentes, ações em aberto — Validated in Phase 7: real KPIs, pull-to-refresh, fl_chart conformity bar chart, role-scoped (auditor vê apenas suas auditorias)
-- [ ] Menu flutuante FAB com navegação animada nas telas principais
-- [ ] Tela de relatórios com filtros por data e template, exibição em lista/gráfico
-- [ ] Tela de ações corretivas com status (aberta, em andamento, concluída) e filtros
-- [ ] Upload e visualização de imagens por pergunta nas auditorias
-- [ ] Criação de ações corretivas vinculadas a perguntas, com responsável e prazo
-- [ ] Notificações in-app e email automático para ações atribuídas
-- [ ] Ordenação automática e reordenação manual (drag & drop ou botões) de perguntas
+- [ ] Notificações in-app e email automático para ações atribuídas (NOTIF-01/02/03) — deferred from v1.1
+- [ ] Responsável externo por email nas ações corretivas (999.1) — backlog
 
 ### Out of Scope
 
 - Modo offline completo com sync posterior — complexidade alta, milestone futura
 - Exportação em PDF/Excel — v2 após relatórios básicos estarem funcionando
 - Relatórios consolidados multi-empresa — admin feature de v2
+- FAB expandível + drawer simplificado (NAV-01/02) — cancelado em v1.1
+- Ordenação automática e drag & drop de perguntas no template (TMPL-01/02) — cancelado em v1.1
+- Notificações por prazo vencendo — requer cron job, v2+
 
 ## Context
 
-- App em desenvolvimento ativo, sem usuários reais ainda
-- Codebase mapeado em 2026-04-16: arquitetura 3 camadas (screens → services → models), sem DI, sem BLoC/Riverpod
-- Gerenciamento de estado: setState local + um ValueNotifier global (tema)
+- App com funcionalidades core entregues em v1.1; pronto para uso em campo por auditores
+- Codebase: ~13.000 LOC Dart, arquitetura 3 camadas (screens → services → models)
+- Stack: Flutter 3.38.4, Dart 3.11.4, Supabase (auth + db + storage + RLS)
+- Gerenciamento de estado: setState local + ValueNotifier global (tema) — sem BLoC/Riverpod
 - Suporte a múltiplas empresas via CompanyContextService (singleton com SharedPreferences)
-- Test suite: apenas scaffold Flutter padrão (contador inexistente) — zero cobertura real
-- O risco mais crítico identificado: save silencioso de respostas em `audit_execution_screen.dart:228`
+- Test suite: testes unitários para serviços core (DashboardService, conformidade, roles, modelos)
+- Navegação atual: drawer com Dashboard, Administração*, Templates*, Auditorias, Ações Corretivas, Perfil, Configurações, Sair
+- Próxima milestone: Notificações in-app + email automático
 
 ## Constraints
 
-- **Stack**: Flutter + Dart + Supabase — sem trocar de stack nesta milestone
-- **Estado**: Sem introduzir BLoC/Riverpod/Provider nesta milestone — refactor de estado é trabalho futuro separado
+- **Stack**: Flutter + Dart + Supabase — sem trocar de stack
+- **Estado**: Sem introduzir BLoC/Riverpod/Provider — refactor de estado é milestone separada
 - **DB**: Migrações devem seguir padrão idempotente já estabelecido
 - **Compatibilidade**: Não quebrar fluxos existentes (criação/execução/encerramento de auditorias)
 
@@ -75,26 +69,17 @@ Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencios
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Corrigir estrutura antes de novas features | App está em desenvolvimento; risco técnico alto se problemas forem para produção | — Pending |
-| Manter setState como gerenciamento de estado | Refactor completo é milestone separada, não misturar com correção de bugs | — Pending |
-| RLS como camada de segurança principal | anon key é public by design no Supabase; segurança depende de RLS correto | — Pending |
-
-## Evolution
-
-Este documento evolui a cada transição de fase e milestone.
-
-**Após cada fase** (via `/gsd-transition`):
-1. Requirements invalidados? → Mover para Out of Scope com motivo
-2. Requirements validados? → Mover para Validated com referência da fase
-3. Novos requirements? → Adicionar em Active
-4. Decisões a registrar? → Adicionar em Key Decisions
-5. "What This Is" ainda preciso? → Atualizar se driftar
-
-**Após cada milestone** (via `/gsd-complete-milestone`):
-1. Revisão completa de todas as seções
-2. Core Value check — ainda é a prioridade certa?
-3. Auditar Out of Scope — motivos ainda válidos?
-4. Atualizar Context com estado atual
+| Corrigir estrutura antes de novas features (v1.0) | App em desenvolvimento; risco técnico alto se problemas fossem para produção | ✓ Bom — base sólida para v1.1 |
+| Manter setState como gerenciamento de estado | Refactor completo é milestone separada, não misturar com features | ✓ Bom — mantido em v1.1 |
+| RLS como camada de segurança principal | anon key é public by design no Supabase; segurança depende de RLS correto | ✓ Bom — padrão mantido |
+| Phase 7 com fallback 0 para corrective_actions | Phase 8 entregou a migration; Phase 7 executada em paralelo com valor zero | ✓ Bom — sem bloqueio |
+| canTransitionTo usa createdBy como avaliador | Responsável não pode avaliar a própria ação — createdBy (auditor) avalia | ✓ Bom — RBAC correto |
+| NotificationService como singleton | Manter unreadCount vivo entre navegações sem Realtime | — Pending (v1.1 deferred) |
+| Upload de imagens independente de _saveAnswer | Falha de upload não bloqueia finalização de auditoria — core value mantido | ✓ Bom |
+| REP-01–04 substituídos por Calendar Dashboard | Usuário priorizou calendário no dashboard sobre tela de relatórios separada | ✓ Bom — menos complexidade |
+| Phase 6/12 canceladas | Templates drag & drop e FAB de navegação removidos do escopo | — Aceito como trade-off |
+| Phase 11 adiada | FCM + Edge Functions têm alta complexidade de setup — milestone dedicada | — Pendente |
 
 ---
-*Last updated: 2026-04-25 — Phase 07 complete (DASH-01 real KPIs scoped por empresa, DASH-02 pull-to-refresh, DASH-03 fl_chart conformity bar chart)*
+
+*Last updated: 2026-05-02 — v1.1 Features & UX milestone complete*
