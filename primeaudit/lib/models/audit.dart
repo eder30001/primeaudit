@@ -101,11 +101,23 @@ class Audit {
       perimeterName: map['perimeters']?['name'],
       auditorId: map['auditor_id'],
       auditorName: map['auditor']?['full_name'] ?? '',
-      createdAt: DateTime.parse(map['created_at']),
-      deadline: map['deadline'] != null ? DateTime.parse(map['deadline']) : null,
+      createdAt: DateTime.parse(map['created_at']).toLocal(),
+      deadline: map['deadline'] != null ? _parseDateOnly(map['deadline']) : null,
       status: _statusFromString(map['status']),
       conformityPercent: (map['conformity_percent'] as num?)?.toDouble(),
     );
+  }
+
+  // Parses a deadline string as a date-only value in local time.
+  // PostgreSQL timestamptz "2026-05-02T00:00:00+00:00" → UTC midnight → toLocal() daria
+  // o dia anterior no Brazil (UTC-3). Extraímos só a parte de data do UTC para preservar
+  // a intenção do usuário ao definir o deadline.
+  static DateTime _parseDateOnly(String s) {
+    final dt = DateTime.parse(s);
+    // Se tem info de timezone (UTC), extrair a data em UTC — o usuário definiu "dia X"
+    // e queremos exibir "dia X" no calendário independente do timezone.
+    final utc = dt.isUtc ? dt : dt.toUtc();
+    return DateTime(utc.year, utc.month, utc.day);
   }
 
   static AuditStatus _statusFromString(String? s) {
