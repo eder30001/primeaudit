@@ -49,7 +49,7 @@ class _CorrectiveActionDetailScreenState
       _action.responsibleUserId == widget.currentUserId;
   bool get _isCreator => _action.createdBy == widget.currentUserId;
   bool get _isAuditor => widget.currentUserRole == AppRole.auditor;
-  bool get _canInteract => _isAdmin || _isResponsible || _isCreator;
+  bool get _canInteract => _isAdmin || _isAuditor || _isResponsible || _isCreator;
 
   @override
   void initState() {
@@ -198,9 +198,16 @@ class _CorrectiveActionDetailScreenState
       return;
     }
 
+    if (users.isEmpty) {
+      _snack('Nenhum usuário encontrado. Verifique as permissões.');
+      return;
+    }
+
     if (!mounted) return;
 
-    String? selectedId = _action.responsibleUserId;
+    // Se o responsável atual não estiver na lista (RLS restrito), inicia sem seleção
+    final currentInList = users.any((u) => u.id == _action.responsibleUserId);
+    String? selectedId = currentInList ? _action.responsibleUserId : null;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -209,6 +216,7 @@ class _CorrectiveActionDetailScreenState
           title: const Text('Alterar responsável'),
           content: DropdownButtonFormField<String>(
             value: selectedId,
+            hint: const Text('Selecione o responsável'),
             items: users
                 .map((u) => DropdownMenuItem(value: u.id, child: Text(u.fullName)))
                 .toList(),

@@ -6,24 +6,24 @@ import '../services/corrective_action_service.dart';
 import '../services/company_context_service.dart';
 import 'corrective_action_detail_screen.dart';
 
-enum _StatusFilter { todas, abertas, emAndamento, emAvaliacao, finalizadas }
+enum _StatusFilter { todas, abertas, emAnalise, reaberta, finalizadas }
 
 extension _StatusFilterLabel on _StatusFilter {
   String get label {
     switch (this) {
-      case _StatusFilter.todas:       return 'Todos';
-      case _StatusFilter.abertas:     return 'Em aberto';
-      case _StatusFilter.emAndamento: return 'Em andamento';
-      case _StatusFilter.emAvaliacao: return 'Em avaliação';
+      case _StatusFilter.todas:     return 'Todos';
+      case _StatusFilter.abertas:   return 'Em aberto';
+      case _StatusFilter.emAnalise: return 'Em análise';
+      case _StatusFilter.reaberta:  return 'Reaberta';
       case _StatusFilter.finalizadas: return 'Finalizadas';
     }
   }
 
   String? get dbValue {
     switch (this) {
-      case _StatusFilter.emAndamento: return 'em_andamento';
-      case _StatusFilter.emAvaliacao: return 'em_avaliacao';
-      default:                        return null;
+      case _StatusFilter.emAnalise: return 'em_analise';
+      case _StatusFilter.reaberta:  return 'reaberta';
+      default:                      return null;
     }
   }
 }
@@ -85,18 +85,28 @@ class _CorrectiveActionsScreenState extends State<CorrectiveActionsScreen> {
       case _StatusFilter.todas:
         break;
       case _StatusFilter.abertas:
+        // Inclui status ativos (novos + legado)
         list = list
             .where((a) =>
                 a.status == CorrectiveActionStatus.aberta ||
-                a.status == CorrectiveActionStatus.emAndamento ||
-                a.status == CorrectiveActionStatus.emAvaliacao)
+                a.status == CorrectiveActionStatus.reaberta ||
+                a.status == CorrectiveActionStatus.emAndamento ||   // legado
+                a.status == CorrectiveActionStatus.emAvaliacao)     // legado
+            .toList();
+        break;
+      case _StatusFilter.emAnalise:
+        list = list
+            .where((a) => a.status == CorrectiveActionStatus.emAnalise)
+            .toList();
+        break;
+      case _StatusFilter.reaberta:
+        list = list
+            .where((a) => a.status == CorrectiveActionStatus.reaberta ||
+                a.status == CorrectiveActionStatus.rejeitada) // legado
             .toList();
         break;
       case _StatusFilter.finalizadas:
         list = list.where((a) => a.status.isFinal).toList();
-        break;
-      case _StatusFilter.emAndamento:
-      case _StatusFilter.emAvaliacao:
         break;
     }
     if (_responsibleFilter != null) {
