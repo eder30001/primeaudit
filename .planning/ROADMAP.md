@@ -139,3 +139,17 @@ Esta milestone adiciona as funcionalidades core que tornam o app utilizável em 
 | 3. Test Coverage | Complete | — |
 | 4. Performance | Complete | — |
 | 5. Server Config | Deferred to v2 | — |
+
+---
+
+## Backlog
+
+### Phase 999.1: Responsável externo por email nas ações corretivas (BACKLOG)
+
+**Goal:** No campo de responsável das ações corretivas, adicionar opção "Convidar por email" para casos em que o responsável ainda não está cadastrado no sistema. A ação fica vinculada ao e-mail até o cadastro ser concluído.
+**Requirements:** TBD
+**Context:** Hoje o dropdown só lista usuários cadastrados em `profiles`. Em cenários onde o responsável é externo ou ainda não tem conta, o auditor fica bloqueado sem poder atribuir a ação. Fluxo sugerido: dropdown normal + opção de digitar e-mail manualmente; o sistema envia convite e vincula a ação ao perfil quando criado.
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promover com /gsd-review-backlog quando pronto)
