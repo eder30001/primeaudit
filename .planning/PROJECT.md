@@ -6,6 +6,19 @@ App Flutter para realização de auditorias industriais em campo. Auditores exec
 
 Funcionalidades ativas: dashboard com KPIs reais, ações corretivas com fluxo CAPA completo, upload de fotos por pergunta, e calendário de auditorias no dashboard.
 
+## Current Milestone: v1.2 Checklist
+
+**Goal:** Adicionar módulo de Checklist independente — templates industriais e de transportadora, execução com fotos e observações, histórico e exportação PDF.
+
+**Target features:**
+- Gerenciamento de templates (CRUD + clonagem + 10 templates seed pré-definidos)
+- Execução de checklist com suporte a Sim/Não, texto, número, data, foto, múltipla escolha
+- Salvamento automático de rascunho durante execução
+- Histórico de checklists com filtros (data, tipo, responsável, local) e indicadores de conformidade
+- Geração de relatório PDF e exportação via email/WhatsApp
+- Assinatura digital ao final da execução
+- Entrada "Checklist" no drawer de navegação
+
 ## Core Value
 
 Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencioso ou falha de rede não pode comprometer o trabalho do auditor.
@@ -35,6 +48,22 @@ Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencios
 
 ### Active
 
+**v1.2 Checklist:**
+- [ ] Listagem de templates por categoria (Industrial / Transportadora / Meus checklists) — TMPLCK-01
+- [ ] CRUD completo para templates customizados — TMPLCK-02/03/04
+- [ ] Clonagem de template existente — TMPLCK-05
+- [ ] Templates seed pré-definidos no banco (10 templates) — TMPLCK-06
+- [ ] Execução de checklist com identificação (responsável, local, data, número) — EXEC-01
+- [ ] Suporte a todos os tipos de resposta — EXEC-02
+- [ ] Campo de observação e foto por item — EXEC-03/04
+- [ ] Salvamento automático de rascunho — EXEC-05
+- [ ] Assinatura digital ao final — EXEC-06
+- [ ] Histórico com filtros e visualização — HIST-01/02
+- [ ] Indicadores de conformidade no histórico — HIST-03
+- [ ] Geração de PDF e exportação — REP-01/02
+- [ ] Entrada "Checklist" no drawer — NAV-01
+
+**Deferred (v1.1):**
 - [ ] Notificações in-app e email automático para ações atribuídas (NOTIF-01/02/03) — deferred from v1.1
 - [ ] Responsável externo por email nas ações corretivas (999.1) — backlog
 
@@ -80,6 +109,23 @@ Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencios
 | Phase 6/12 canceladas | Templates drag & drop e FAB de navegação removidos do escopo | — Aceito como trade-off |
 | Phase 11 adiada | FCM + Edge Functions têm alta complexidade de setup — milestone dedicada | — Pendente |
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
 
-*Last updated: 2026-05-02 — v1.1 Features & UX milestone complete*
+*Last updated: 2026-05-02 — v1.2 Checklist milestone started*

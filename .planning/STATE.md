@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Features & UX
-status: complete
-stopped_at: v1.1 milestone closed — 4 phases shipped, 3 cancelled/deferred
+milestone: v1.2
+milestone_name: Checklist
+status: planning
+stopped_at: ""
 last_updated: "2026-05-02T00:00:00Z"
 last_activity: 2026-05-02
 progress:
-  total_phases: 7
-  completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,24 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-02)
 
 **Core value:** Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencioso ou falha de rede não pode comprometer o trabalho do auditor.
-**Current focus:** Planning next milestone (v1.2 — Notifications)
+**Current focus:** Módulo de Checklist independente (v1.2)
 
 ## Current Position
 
-Milestone: v1.1 COMPLETE — archived to .planning/milestones/v1.1-ROADMAP.md
-Status: Ready for next milestone
-Last activity: 2026-05-02
-
-Progress: [██████████] 100% (v1.1 phases)
-
-## Deferred Items
-
-Items deferred at v1.1 milestone close:
-
-| Category | Item | Status |
-|----------|------|--------|
-| phase | Phase 11: Notifications (NOTIF-01/02/03) | Deferred to future milestone |
-| requirement | Phase 999.1: Responsável externo por email | Backlog |
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-02 — Milestone v1.2 started
 
 ## Accumulated Context
 
@@ -61,9 +51,5 @@ Items deferred at v1.1 milestone close:
 
 - NOTIF-03 (FCM push) tem alta complexidade de setup (firebase_messaging, google-services.json, APNs) — avaliar no planejamento da próxima milestone se NOTIF-01/02 podem ser entregues sem FCM primeiro
 - Ordering de perguntas (order_index) não corrigida — TMPL-01 cancelada; pode ser retomada se ordenação incorreta causar problemas em campo
-
-## Session Continuity
-
-Last session: 2026-05-02T00:00:00Z
-Stopped at: v1.1 milestone closed
-Next action: `/gsd-new-milestone` to start v1.2
+- PDF generation é feature nova no projeto — avaliar biblioteca (pdf, printing) na fase de planejamento
+- Assinatura digital não existe no módulo de auditoria atual — implementar do zero no módulo Checklist
