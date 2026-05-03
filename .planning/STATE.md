@@ -7,11 +7,27 @@ stopped_at: ""
 last_updated: "2026-05-02T00:00:00Z"
 last_activity: 2026-05-02
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
   percent: 0
+phases:
+  - id: 13
+    name: DB Foundation + Template Management
+    status: not_started
+  - id: 14
+    name: Checklist Execution Engine
+    status: not_started
+  - id: 15
+    name: Photos per Item
+    status: not_started
+  - id: 16
+    name: Digital Signature
+    status: not_started
+  - id: 17
+    name: History + Conformity Indicators
+    status: not_started
 ---
 
 # Project State
@@ -25,10 +41,12 @@ See: .planning/PROJECT.md (updated 2026-05-02)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-02 — Milestone v1.2 started
+Status: Roadmap defined — ready for Phase 13
+Last activity: 2026-05-02 — Roadmap v1.2 created (5 phases, 16 requirements)
+
+Progress: [----------] 0% (0/5 phases complete)
 
 ## Accumulated Context
 
@@ -47,9 +65,20 @@ Last activity: 2026-05-02 — Milestone v1.2 started
 - fl_chart instalado em Phase 7 — não adicionar novamente
 - Escopo de Relatórios substituído por Calendário de Auditorias no Dashboard
 
+### Decisions (v1.2)
+
+- Módulo Checklist é independente do módulo de Auditoria — zero alterações em AuditTemplateService, AuditAnswerService, ImageService, AuditExecutionScreen
+- checklist-images usa bucket separado de audit-images — evita acoplamento FK
+- Seed templates com UUIDs hardcoded + ON CONFLICT DO NOTHING — idempotência da migration
+- Clone sequencial: criar seções antes de itens para evitar FK órfão (Pitfall #3)
+- Upload de fotos independente de auto-save — falha não bloqueia execução (core value)
+- REP-01/02 (PDF export) movidos para v2 — complexidade de compute isolate + FileProvider Android
+- Tipos number e date excluídos do denominador do cálculo de conformidade
+- Package signature ^9.0.0 para assinatura digital; toPngBytes() → Supabase Storage
+
 ### Blockers/Concerns
 
 - NOTIF-03 (FCM push) tem alta complexidade de setup (firebase_messaging, google-services.json, APNs) — avaliar no planejamento da próxima milestone se NOTIF-01/02 podem ser entregues sem FCM primeiro
 - Ordering de perguntas (order_index) não corrigida — TMPL-01 cancelada; pode ser retomada se ordenação incorreta causar problemas em campo
-- PDF generation é feature nova no projeto — avaliar biblioteca (pdf, printing) na fase de planejamento
-- Assinatura digital não existe no módulo de auditoria atual — implementar do zero no módulo Checklist
+- Verificar versão atual de signature após flutter pub get (9.0.0 MEDIUM confidence)
+- Confirmar se image_picker (Phase 9) já declarou FileProvider no AndroidManifest.xml antes de Phase 15
