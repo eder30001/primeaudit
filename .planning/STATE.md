@@ -42,12 +42,12 @@ See: .planning/PROJECT.md (updated 2026-05-02)
 ## Current Position
 
 Phase: 13 — DB Foundation + Template Management
-Plan: 13-01 (Wave 1 of 4) → checkpoint:human-action (supabase db push pendente)
-Plan: 13-02 (Wave 2 of 4) — próximo após push
-Status: Checkpoint — aguardando supabase db push
-Last activity: 2026-05-04 — Tasks 1+2 de 13-01 concluídas (commit 53a1fbf); checkpoint Task 3
+Plan: 13-02 (Wave 2 of 4) — CONCLUÍDO
+Plan: 13-03 (Wave 3 of 4) — próximo (screens: ChecklistTemplatesScreen + ChecklistTemplateFormScreen)
+Status: Executing — Plan 13-02 completo; pronto para Plan 13-03
+Last activity: 2026-05-04 — Plan 13-02 concluído (commits f2877b0, 0ae316c); model + service + tests
 
-Progress: [----------] 5% (0/5 phases complete; Phase 13 Plan 1/4 concluído)
+Progress: [----------] 10% (0/5 phases complete; Phase 13 Plans 1-2/4 concluídos)
 
 ## Accumulated Context
 
@@ -79,6 +79,9 @@ Progress: [----------] 5% (0/5 phases complete; Phase 13 Plan 1/4 concluído)
 - REP-01/02 (PDF export) movidos para v2 — complexidade de compute isolate + FileProvider Android
 - Tipos number e date excluídos do denominador do cálculo de conformidade
 - Package signature ^9.0.0 para assinatura digital; toPngBytes() → Supabase Storage
+- checklist_template.dart sem imports (pure Dart) — sem Color/IconData em Phase 13
+- getByCategory usa apenas .eq('category') — RLS já filtra seeds + own via policy
+- replaceItems = delete-all + re-insert com order_index 0..n-1 via asMap().entries (Pitfall 5 resolvido)
 
 ### Blockers/Concerns
 
