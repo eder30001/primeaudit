@@ -58,8 +58,14 @@ Archive: [.planning/milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
   3. Usuário cria template customizado com nome, categoria, descrição e itens; template aparece na aba "Meus checklists"
   4. Usuário clona qualquer template seed ou próprio; clone aparece em "Meus checklists" com todos os itens intactos (sem seções órfãs)
   5. Usuário edita e exclui apenas templates próprios; seeds não têm opção de exclusão
-**Plans**: TBD
+**Plans**: 4 plans
 **UI hint**: yes
+
+Plans:
+- [x] 13-01-PLAN.md — DB migration: tables, RLS policies, 10 seed templates (commit 53a1fbf; aguarda supabase db push)
+- [ ] 13-02-PLAN.md — Dart model + service layer + unit tests
+- [ ] 13-03-PLAN.md — ChecklistTemplatesScreen (3-tab list, cards, clone, delete) + drawer entry
+- [ ] 13-04-PLAN.md — ChecklistTemplateFormScreen (create/edit form with items list)
 
 ### Phase 14: Checklist Execution Engine
 **Goal**: Auditores preenchem um checklist completo com todos os tipos de resposta e o rascunho é salvo automaticamente sem bloqueio
@@ -124,7 +130,7 @@ Archive: [.planning/milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
 | 10. Reports (Calendar) | v1.1 | 3/3 | Complete | 2026-05-02 |
 | 11. Notifications | v1.1 | 0/? | Deferred | — |
 | 12. Navigation Refactor | v1.1 | 0/? | Cancelled | 2026-05-02 |
-| 13. DB Foundation + Template Management | v1.2 | 0/? | Not started | — |
+| 13. DB Foundation + Template Management | v1.2 | 1/4 | In progress | — |
 | 14. Checklist Execution Engine | v1.2 | 0/? | Not started | — |
 | 15. Photos per Item | v1.2 | 0/? | Not started | — |
 | 16. Digital Signature | v1.2 | 0/? | Not started | — |

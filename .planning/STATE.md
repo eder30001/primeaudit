@@ -2,20 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Checklist
-status: planning
+status: executing
 stopped_at: ""
-last_updated: "2026-05-02T00:00:00Z"
-last_activity: 2026-05-02
+last_updated: "2026-05-04T00:00:00Z"
+last_activity: 2026-05-04
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
+  total_plans: 4
   completed_plans: 0
   percent: 0
 phases:
   - id: 13
     name: DB Foundation + Template Management
-    status: not_started
+    status: in_progress
   - id: 14
     name: Checklist Execution Engine
     status: not_started
@@ -41,12 +41,13 @@ See: .planning/PROJECT.md (updated 2026-05-02)
 
 ## Current Position
 
-Phase: Not started
-Plan: —
-Status: Roadmap defined — ready for Phase 13
-Last activity: 2026-05-02 — Roadmap v1.2 created (5 phases, 16 requirements)
+Phase: 13 — DB Foundation + Template Management
+Plan: 13-01 (Wave 1 of 4) → checkpoint:human-action (supabase db push pendente)
+Plan: 13-02 (Wave 2 of 4) — próximo após push
+Status: Checkpoint — aguardando supabase db push
+Last activity: 2026-05-04 — Tasks 1+2 de 13-01 concluídas (commit 53a1fbf); checkpoint Task 3
 
-Progress: [----------] 0% (0/5 phases complete)
+Progress: [----------] 5% (0/5 phases complete; Phase 13 Plan 1/4 concluído)
 
 ## Accumulated Context
 
@@ -68,6 +69,9 @@ Progress: [----------] 0% (0/5 phases complete)
 ### Decisions (v1.2)
 
 - Módulo Checklist é independente do módulo de Auditoria — zero alterações em AuditTemplateService, AuditAnswerService, ImageService, AuditExecutionScreen
+- Seeds de checklist_templates usam UUIDs hardcoded (a1b2c3d4-0001-..., b2c3d4e5-0002-...) — imutáveis após migration aplicada
+- template_id em checklist_template_items tem DEFAULT gen_random_uuid() apenas para satisfazer NOT NULL no ADD COLUMN IF NOT EXISTS — scaffold de idempotência, não regra de negócio
+- RLS items: subquery via FK para derivar ownership (sem created_by direto na tabela filha) — Pattern 3 estabelecido
 - checklist-images usa bucket separado de audit-images — evita acoplamento FK
 - Seed templates com UUIDs hardcoded + ON CONFLICT DO NOTHING — idempotência da migration
 - Clone sequencial: criar seções antes de itens para evitar FK órfão (Pitfall #3)
