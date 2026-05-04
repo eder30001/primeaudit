@@ -42,12 +42,12 @@ See: .planning/PROJECT.md (updated 2026-05-02)
 ## Current Position
 
 Phase: 13 — DB Foundation + Template Management
-Plan: 13-02 (Wave 2 of 4) — CONCLUÍDO
-Plan: 13-03 (Wave 3 of 4) — próximo (screens: ChecklistTemplatesScreen + ChecklistTemplateFormScreen)
-Status: Executing — Plan 13-02 completo; pronto para Plan 13-03
-Last activity: 2026-05-04 — Plan 13-02 concluído (commits f2877b0, 0ae316c); model + service + tests
+Plan: 13-04 (Wave 3b of 4) — CONCLUÍDO
+Plan: 13-03 (Wave 3a of 4) — próximo (ChecklistTemplatesScreen + drawer entry)
+Status: Executing — Plan 13-04 completo; pronto para Plan 13-03
+Last activity: 2026-05-04 — Plan 13-04 concluído (commit 2d6d899); ChecklistTemplateFormScreen
 
-Progress: [----------] 10% (0/5 phases complete; Phase 13 Plans 1-2/4 concluídos)
+Progress: [----------] 10% (0/5 phases complete; Phase 13 Plans 1-2-4/4 concluídos)
 
 ## Accumulated Context
 
@@ -82,6 +82,13 @@ Progress: [----------] 10% (0/5 phases complete; Phase 13 Plans 1-2/4 concluído
 - checklist_template.dart sem imports (pure Dart) — sem Color/IconData em Phase 13
 - getByCategory usa apenas .eq('category') — RLS já filtra seeds + own via policy
 - replaceItems = delete-all + re-insert com order_index 0..n-1 via asMap().entries (Pitfall 5 resolvido)
+
+### Decisions (v1.2 — Plan 13-04)
+
+- DropdownButtonFormField usa initialValue (não value) — value depreciado desde Flutter 3.33.0-1.0.pre
+- _inputDec como método da State class acessa context diretamente — sem parâmetro BuildContext extra
+- _ItemRow como StatelessWidget: estado dos items vive no parent (_items list), widget só renderiza
+- Form screen completa (não bottom sheet) para formulários com lista dinâmica de itens de tamanho variável
 
 ### Blockers/Concerns
 
