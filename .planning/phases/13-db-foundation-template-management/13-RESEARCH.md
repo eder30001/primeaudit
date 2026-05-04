@@ -752,22 +752,25 @@ import 'checklist/checklist_templates_screen.dart';
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Category tab content: seeds only, or seeds + own?**
    - What we know: UI-SPEC says "Templates with category == 'industrial' (seeds + own)" but the empty state for those tabs reads "Os templates padrão serão carregados em breve" — implying seeds are the only expected content.
    - What's unclear: Should a user who creates a template with category=industrial see it in the Industrial tab AND in Meus checklists, or only in Meus checklists?
    - Recommendation: Default to seeds-only in category tabs for clean UX; "Meus checklists" is the user's personal list. Confirm before coding.
+   - **RESOLVED:** Category tabs (Industrial, Transportadora) show seeds AND own user templates in that category. The service  uses  and relies on the RLS SELECT policy () to filter naturally. Own templates with a matching category appear in both the category tab and "Meus checklists".
 
 2. **Seed content: what are the 10 actual template names and items?**
    - What we know: 5 Industrial + 5 Transportadora; categories and count are locked.
    - What's unclear: Exact names and items are not specified in any planning artifact.
    - Recommendation: Planner must define seed content in PLAN.md or ask user. Placeholders (e.g., "Inspeção de EPI Industrial") will suffice for the migration if user doesn't specify.
+   - **RESOLVED:** Seed names and items are defined in Plan 13-01 Task 2. Industrial seeds: "Inspeção de EPI e Segurança do Trabalho", "Auditoria de 5S Industrial", "Inspeção de Máquinas e Equipamentos", "Checklist de Manutenção Preventiva", "Inspeção de Riscos Elétricos". Transportadora seeds: "Vistoria de Veículo Leve", "Vistoria de Veículo Pesado / Caminhão", "Checklist de Carregamento e Embalagem", "Inspeção de Motorista e Documentação", "Auditoria de Processo de Entrega". Each seed has 5 items with hardcoded UUIDs.
 
 3. **Edit mode: delete all items and re-insert, or diff/patch?**
    - What we know: Phase 13 items are simple (description + type); no item IDs are tracked in the form UI.
    - What's unclear: If the form doesn't surface item IDs, the simplest edit strategy is delete-all-items + re-insert.
    - Recommendation: Delete + re-insert is simpler and safe (CASCADE FK means no orphans). Confirm this is acceptable for v1.2.
+   - **RESOLVED:** Delete-all + re-insert via  in Plan 13-02. The service method deletes all existing items for the template then batch-inserts the new list with  re-indexed 0..n-1. This avoids diff/patch complexity for v1.2 (Pitfall 5 handled by  indexing).
 
 ---
 
