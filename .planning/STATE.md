@@ -45,7 +45,7 @@ Phase: 13 — DB Foundation + Template Management
 Plan: 13-03 (Wave 3a of 4) — CONCLUÍDO (commits f222262, 21535d8)
 Plan: 13-04 (Wave 3b of 4) — CONCLUÍDO (commit 2d6d899)
 Status: Phase 13 COMPLETA — todos os 4 planos entregues; pronto para Phase 14
-Last activity: 2026-05-04 — Plan 13-03 concluído; ChecklistTemplatesScreen + drawer entry NAV-01
+Last activity: 2026-05-05 — Quick task 260505-001: ChecklistTemplatesScreen redesenhada como category picker; ChecklistTemplateListScreen criada
 
 Progress: [##--------] 20% (1/5 phases complete; Phase 13 ALL 4/4 planos concluídos)
 
@@ -95,6 +95,12 @@ Progress: [##--------] 20% (1/5 phases complete; Phase 13 ALL 4/4 planos conclu�
 - _inputDec como método da State class acessa context diretamente — sem parâmetro BuildContext extra
 - _ItemRow como StatelessWidget: estado dos items vive no parent (_items list), widget só renderiza
 - Form screen completa (não bottom sheet) para formulários com lista dinâmica de itens de tamanho variável
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260505-001 | Redesenhar ChecklistTemplatesScreen — category picker com cards centralizados | 2026-05-05 | — | [260505-001-checklist-category-picker](./quick/260505-001-checklist-category-picker/) |
 
 ### Blockers/Concerns
 
