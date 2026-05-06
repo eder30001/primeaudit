@@ -45,7 +45,7 @@ Phase: 13 — DB Foundation + Template Management
 Plan: 13-03 (Wave 3a of 4) — CONCLUÍDO (commits f222262, 21535d8)
 Plan: 13-04 (Wave 3b of 4) — CONCLUÍDO (commit 2d6d899)
 Status: Phase 13 COMPLETA — todos os 4 planos entregues; pronto para Phase 14
-Last activity: 2026-05-05 — Quick task 260505-001: ChecklistTemplatesScreen redesenhada como category picker; ChecklistTemplateListScreen criada
+Last activity: 2026-05-06 — Phase 14 planejada: 6 plans (Wave 0–3), research + patterns + validation criados
 
 Progress: [##--------] 20% (1/5 phases complete; Phase 13 ALL 4/4 planos concluídos)
 
