@@ -39,7 +39,7 @@ Archive: [.planning/milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
 ### v1.2 Checklist (Phases 13–17)
 
 - [ ] **Phase 13: DB Foundation + Template Management** — Banco de dados, migrations com seeds e telas de gerenciamento de templates
-- [ ] **Phase 14: Checklist Execution Engine** — Fluxo completo de execução com todos os tipos de resposta e auto-save de rascunho
+- [x] **Phase 14: Checklist Execution Engine** — Fluxo completo de execução com todos os tipos de resposta e auto-save de rascunho — completed 2026-05-06
 - [ ] **Phase 15: Photos per Item** — Anexar fotos por item durante execução (câmera ou galeria)
 - [ ] **Phase 16: Digital Signature** — Captura de assinatura digital como sign-off ao finalizar checklist
 - [ ] **Phase 17: History + Conformity Indicators** — Listagem de checklists realizados com filtros e indicadores de conformidade
