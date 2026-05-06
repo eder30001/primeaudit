@@ -84,8 +84,13 @@ class _ChecklistExecutionScreenState extends State<ChecklistExecutionScreen> {
         }
       }
 
-      // Pitfall 3: preservar respostas pendentes (não salvas) sobre dados do banco
+      // Pitfall 3: preservar respostas e observações pendentes (não salvas) sobre dados do banco
       merged.addAll(_failedSaves.map((k, v) => MapEntry(k, v.response)));
+      for (final entry in _failedSaves.entries) {
+        if (entry.value.observation != null) {
+          mergedObs[entry.key] = entry.value.observation!;
+        }
+      }
 
       if (mounted) {
         setState(() {
@@ -126,7 +131,7 @@ class _ChecklistExecutionScreenState extends State<ChecklistExecutionScreen> {
   }
 
   void _onObservation(String itemId, String obs) {
-    _observations[itemId] = obs;
+    setState(() => _observations[itemId] = obs);
     final resp = _answers[itemId];
     if (resp != null) _saveAnswer(itemId, resp, observation: obs); // fire-and-forget
   }
@@ -212,6 +217,7 @@ class _ChecklistExecutionScreenState extends State<ChecklistExecutionScreen> {
           );
           if (mounted) {
             setState(() => _failedSaves.remove(itemId));
+            ScaffoldMessenger.of(context).clearSnackBars();
           }
           break; // sucesso — sai do loop
         } catch (_) {
