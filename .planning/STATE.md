@@ -4,12 +4,12 @@ milestone: v1.2
 milestone_name: Checklist
 status: executing
 stopped_at: ""
-last_updated: "2026-05-06T00:00:00Z"
-last_activity: 2026-05-06
+last_updated: "2026-05-07T00:00:00Z"
+last_activity: 2026-05-07
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 10
+  total_plans: 13
   completed_plans: 10
   percent: 40
 phases:
@@ -21,7 +21,8 @@ phases:
     status: complete
   - id: 15
     name: Photos per Item
-    status: not_started
+    status: planned
+    plan_count: 3
   - id: 16
     name: Digital Signature
     status: not_started
@@ -41,11 +42,9 @@ See: .planning/PROJECT.md (updated 2026-05-02)
 
 ## Current Position
 
-Phase: 13 — DB Foundation + Template Management
-Plan: 13-03 (Wave 3a of 4) — CONCLUÍDO (commits f222262, 21535d8)
-Plan: 13-04 (Wave 3b of 4) — CONCLUÍDO (commit 2d6d899)
-Status: Phase 13 COMPLETA — todos os 4 planos entregues; pronto para Phase 14
-Last activity: 2026-05-06 — Phase 14 planejada: 6 plans (Wave 0–3), research + patterns + validation criados
+Phase: 15 — Photos per Item
+Status: Phase 15 PLANEJADA — 3 planos (Wave 1–3), research + patterns + validation criados
+Last activity: 2026-05-07 — Phase 15 planejada: 3 plans (Wave 1–3), supabase db push [BLOCKING] em Wave 2
 
 Progress: [##--------] 20% (1/5 phases complete; Phase 13 ALL 4/4 planos concluídos)
 
