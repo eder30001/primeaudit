@@ -1,13 +1,18 @@
+import 'dart:io';
 import 'dart:math' show pow;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter;
+import 'package:image_picker/image_picker.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_theme.dart';
 import '../../models/checklist_execution.dart';
+import '../../models/checklist_item_image.dart';
 import '../../models/checklist_template.dart';
 import '../../services/checklist_answer_service.dart';
 import '../../services/checklist_execution_service.dart';
+import '../../services/checklist_image_service.dart';
 import '../../services/checklist_template_service.dart';
+import '../../services/company_context_service.dart';
 import 'checklist_pending_save.dart';
 
 // Alias interno: _PendingSave dentro deste arquivo mapeia para ChecklistPendingSave
@@ -33,6 +38,9 @@ class _ChecklistExecutionScreenState extends State<ChecklistExecutionScreen> {
   final _templateService = ChecklistTemplateService();
   final _answerService = ChecklistAnswerService();
   final _executionService = ChecklistExecutionService();
+  // Phase 15: fotos por item
+  final _imageService = ChecklistImageService();
+  final Map<String, List<_ChecklistPhotoEntry>> _photosPerItem = {};
 
   List<ChecklistTemplateItem> _allItems = [];
 
@@ -66,14 +74,16 @@ class _ChecklistExecutionScreenState extends State<ChecklistExecutionScreen> {
     try {
       final templateId = widget.execution.templateId;
 
-      // Carrega itens e respostas em paralelo
+      // Carrega itens, respostas e fotos em paralelo
       final results = await Future.wait([
         _templateService.getItems(templateId),
         _answerService.getAnswers(widget.execution.id),
+        _imageService.getImagesByExecution(widget.execution.id), // Phase 15
       ]);
 
       final items = results[0] as List<ChecklistTemplateItem>;
       final answerRows = results[1] as List<Map<String, dynamic>>;
+      final imageRows = results[2] as List<ChecklistItemImage>;
 
       final merged = <String, String>{};
       final mergedObs = <String, String>{};
@@ -92,11 +102,32 @@ class _ChecklistExecutionScreenState extends State<ChecklistExecutionScreen> {
         }
       }
 
+      // Gerar signed URLs em paralelo (Pitfall 3: evitar N chamadas sequenciais)
+      final urls = await Future.wait(
+        imageRows.map((img) => _imageService
+            .getSignedUrl(img.storagePath)
+            .catchError((_) => '')),
+      );
+
+      final photosMap = <String, List<_ChecklistPhotoEntry>>{};
+      for (var idx = 0; idx < imageRows.length; idx++) {
+        final img = imageRows[idx];
+        final url = urls[idx].isEmpty ? null : urls[idx];
+        final entry = _ChecklistPhotoEntry(
+          key: img.id,
+          state: url != null ? _ChecklistPhotoState.uploaded : _ChecklistPhotoState.error,
+          image: img,
+          signedUrl: url,
+        );
+        photosMap.putIfAbsent(img.itemId, () => []).add(entry);
+      }
+
       if (mounted) {
         setState(() {
           _allItems = items;
           _answers.addAll(merged);
           _observations.addAll(mergedObs);
+          _photosPerItem.addAll(photosMap);
           _loading = false;
         });
       }
@@ -134,6 +165,126 @@ class _ChecklistExecutionScreenState extends State<ChecklistExecutionScreen> {
     setState(() => _observations[itemId] = obs);
     final resp = _answers[itemId];
     if (resp != null) _saveAnswer(itemId, resp, observation: obs); // fire-and-forget
+  }
+
+  // ── Fotos por item ────────────────────────────────────────────────────────
+  // CORE VALUE: _pickPhoto é completamente independente de _saveAnswer e _failedSaves.
+  // Falha de upload => setState(error) + snackbar. Não toca _failedSaves. Não bloqueia _finalize.
+
+  Future<void> _pickPhoto(String itemId) async {
+    final messenger = ScaffoldMessenger.of(context); // ANTES de qualquer await (Pitfall 1)
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: AppTheme.of(context).surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (_) => const _PhotoSourceSheet(),
+    );
+    if (source == null) return;
+
+    final file = await ImagePicker().pickImage(
+        source: source, imageQuality: 85, maxWidth: 1200);
+    if (file == null) return;
+
+    final key = 'tmp_${DateTime.now().microsecondsSinceEpoch}';
+    setState(() {
+      _photosPerItem.putIfAbsent(itemId, () => []).add(
+        _ChecklistPhotoEntry(
+            key: key, state: _ChecklistPhotoState.uploading, file: file),
+      );
+    });
+
+    try {
+      final companyId = CompanyContextService.instance.activeCompanyId!;
+      final img = await _imageService.uploadImage(
+        companyId: companyId,
+        executionId: widget.execution.id,
+        itemId: itemId,
+        file: file,
+      );
+      final url = await _imageService.getSignedUrl(img.storagePath);
+      if (!mounted) return;
+      setState(() {
+        final photos = _photosPerItem[itemId]!;
+        final i = photos.indexWhere((p) => p.key == key);
+        if (i >= 0) {
+          photos[i] = photos[i].copyWith(
+            state: _ChecklistPhotoState.uploaded,
+            image: img,
+            signedUrl: url,
+          );
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        final photos = _photosPerItem[itemId]!;
+        final i = photos.indexWhere((p) => p.key == key);
+        if (i >= 0) {
+          photos[i] = photos[i].copyWith(state: _ChecklistPhotoState.error);
+        }
+      });
+      messenger.showSnackBar(
+        SnackBar(
+            content: Text('Upload falhou: $e'),
+            behavior: SnackBarBehavior.floating),
+      );
+    }
+  }
+
+  Future<void> _retryPhoto(String itemId, String key) async {
+    final photos = _photosPerItem[itemId];
+    if (photos == null) return;
+    final idx = photos.indexWhere((p) => p.key == key);
+    if (idx < 0 || photos[idx].file == null) return;
+    final file = photos[idx].file!;
+    setState(() {
+      photos[idx] = photos[idx].copyWith(state: _ChecklistPhotoState.uploading);
+    });
+    try {
+      final companyId = CompanyContextService.instance.activeCompanyId!;
+      final img = await _imageService.uploadImage(
+        companyId: companyId,
+        executionId: widget.execution.id,
+        itemId: itemId,
+        file: file,
+      );
+      final url = await _imageService.getSignedUrl(img.storagePath);
+      if (!mounted) return;
+      setState(() {
+        final i = photos.indexWhere((p) => p.key == key);
+        if (i >= 0) {
+          photos[i] = photos[i].copyWith(
+            state: _ChecklistPhotoState.uploaded,
+            image: img,
+            signedUrl: url,
+          );
+        }
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        final i = photos.indexWhere((p) => p.key == key);
+        if (i >= 0) {
+          photos[i] = photos[i].copyWith(state: _ChecklistPhotoState.error);
+        }
+      });
+    }
+  }
+
+  Future<void> _removePhoto(String itemId, String key) async {
+    final photos = _photosPerItem[itemId];
+    if (photos == null) return;
+    final idx = photos.indexWhere((p) => p.key == key);
+    if (idx < 0) return;
+    final entry = photos[idx];
+    setState(() => photos.removeWhere((p) => p.key == key));
+    if (entry.image != null) {
+      try {
+        await _imageService.deleteImage(
+            imageId: entry.image!.id, storagePath: entry.image!.storagePath);
+      } catch (_) {}
+    }
   }
 
   // ── Auto-save (fire-and-forget) ───────────────────────────────────────────
@@ -451,6 +602,10 @@ class _ChecklistExecutionScreenState extends State<ChecklistExecutionScreen> {
             onAnswer: (r) => _onAnswer(item.id, r),
             onObservation: (o) => _onObservation(item.id, o),
             theme: t,
+            photos: item.itemType == 'photo' ? (_photosPerItem[item.id] ?? []) : null,
+            onPickPhoto: _pickPhoto,
+            onRetryPhoto: _retryPhoto,
+            onRemovePhoto: _removePhoto,
           );
         },
       ),
@@ -532,6 +687,11 @@ class _ChecklistItemCard extends StatefulWidget {
   final void Function(String) onAnswer;
   final void Function(String) onObservation;
   final AppTheme theme;
+  // Phase 15: fotos por item
+  final List<_ChecklistPhotoEntry>? photos;
+  final void Function(String itemId)? onPickPhoto;
+  final void Function(String itemId, String key)? onRetryPhoto;
+  final void Function(String itemId, String key)? onRemovePhoto;
 
   const _ChecklistItemCard({
     required this.item,
@@ -542,6 +702,10 @@ class _ChecklistItemCard extends StatefulWidget {
     required this.onAnswer,
     required this.onObservation,
     required this.theme,
+    this.photos,
+    this.onPickPhoto,
+    this.onRetryPhoto,
+    this.onRemovePhoto,
   });
 
   @override
@@ -656,6 +820,21 @@ class _ChecklistItemCardState extends State<_ChecklistItemCard> {
               onAnswer: widget.onAnswer,
               theme: t,
             ),
+
+            // Strip de fotos (Phase 15) — renderizado abaixo do _AnswerWidget para itens 'photo'
+            if (widget.item.itemType == 'photo' && widget.photos != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: _ChecklistPhotoStrip(
+                  itemId: widget.item.id,
+                  photos: widget.photos!,
+                  readOnly: widget.readOnly,
+                  onPickPhoto: widget.onPickPhoto!,
+                  onRetryPhoto: widget.onRetryPhoto!,
+                  onRemovePhoto: widget.onRemovePhoto!,
+                  theme: widget.theme,
+                ),
+              ),
 
             // Campo de observação colapsável
             const SizedBox(height: 10),
@@ -792,7 +971,7 @@ class _AnswerWidget extends StatelessWidget {
         );
 
       case 'photo':
-        return _PhotoPlaceholder(theme: theme);
+        return const SizedBox.shrink(); // Strip é gerenciado pelo _ChecklistItemCard pai
 
       default:
         return const SizedBox.shrink();
@@ -1119,33 +1298,6 @@ class _MultipleChoiceAnswer extends StatelessWidget {
   }
 }
 
-// ── Placeholder de foto (Phase 15) ────────────────────────────────────────
-class _PhotoPlaceholder extends StatelessWidget {
-  final AppTheme theme;
-
-  const _PhotoPlaceholder({required this.theme});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        children: [
-          Icon(Icons.photo_camera_outlined,
-              size: 20, color: theme.textSecondary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Foto disponível na próxima versão',
-              style: TextStyle(color: theme.textSecondary, fontSize: 13),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ── Badge pequeno ─────────────────────────────────────────────────────────
 class _Badge extends StatelessWidget {
   final String label;
@@ -1164,6 +1316,193 @@ class _Badge extends StatelessWidget {
         label,
         style: TextStyle(
             fontSize: 10, fontWeight: FontWeight.w600, color: color),
+      ),
+    );
+  }
+}
+
+// ── Tipos auxiliares — fotos por item ────────────────────────────────────
+
+enum _ChecklistPhotoState { uploading, uploaded, error }
+
+class _ChecklistPhotoEntry {
+  final String key;
+  final _ChecklistPhotoState state;
+  final XFile? file;
+  final ChecklistItemImage? image;
+  final String? signedUrl;
+
+  const _ChecklistPhotoEntry({
+    required this.key,
+    required this.state,
+    this.file,
+    this.image,
+    this.signedUrl,
+  });
+
+  _ChecklistPhotoEntry copyWith({
+    _ChecklistPhotoState? state,
+    ChecklistItemImage? image,
+    String? signedUrl,
+  }) =>
+      _ChecklistPhotoEntry(
+        key: key,
+        state: state ?? this.state,
+        file: file,
+        image: image ?? this.image,
+        signedUrl: signedUrl ?? this.signedUrl,
+      );
+}
+
+// ── Seletor de fonte de foto ──────────────────────────────────────────────
+// Copiado verbatim de create_corrective_action_screen.dart linhas 546-571
+
+class _PhotoSourceSheet extends StatelessWidget {
+  const _PhotoSourceSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.camera_alt_rounded, color: AppColors.accent),
+          title: const Text('Tirar foto', style: TextStyle(fontSize: 14)),
+          onTap: () => Navigator.pop(context, ImageSource.camera),
+        ),
+        ListTile(
+          leading: const Icon(Icons.photo_library_rounded, color: AppColors.accent),
+          title: const Text('Escolher da galeria', style: TextStyle(fontSize: 14)),
+          onTap: () => Navigator.pop(context, ImageSource.gallery),
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+}
+
+// ── Strip de miniaturas de foto por item ──────────────────────────────────
+// StatelessWidget — estado vive no _ChecklistExecutionScreenState._photosPerItem
+
+class _ChecklistPhotoStrip extends StatelessWidget {
+  final String itemId;
+  final List<_ChecklistPhotoEntry> photos;
+  final bool readOnly;
+  final void Function(String itemId) onPickPhoto;
+  final void Function(String itemId, String key) onRetryPhoto;
+  final void Function(String itemId, String key) onRemovePhoto;
+  final AppTheme theme;
+
+  const _ChecklistPhotoStrip({
+    required this.itemId,
+    required this.photos,
+    required this.readOnly,
+    required this.onPickPhoto,
+    required this.onRetryPhoto,
+    required this.onRemovePhoto,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!readOnly)
+          GestureDetector(
+            onTap: () => onPickPhoto(itemId),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.accent.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    color: AppColors.accent.withValues(alpha: 0.3)),
+              ),
+              child: const Icon(Icons.photo_camera_outlined,
+                  size: 22, color: AppColors.accent),
+            ),
+          ),
+        if (photos.isNotEmpty) ...[
+          const SizedBox(width: 8),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: photos
+                    .map((p) => Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: _buildThumb(p),
+                        ))
+                    .toList(),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildThumb(_ChecklistPhotoEntry p) {
+    return SizedBox(
+      width: 72,
+      height: 72,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: GestureDetector(
+          onTap: p.state == _ChecklistPhotoState.error
+              ? () => onRetryPhoto(itemId, p.key)
+              : null,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (p.state == _ChecklistPhotoState.uploaded &&
+                  p.signedUrl != null)
+                Image.network(p.signedUrl!, fit: BoxFit.cover)
+              else if (p.file != null)
+                Opacity(
+                  opacity:
+                      p.state == _ChecklistPhotoState.error ? 0.4 : 0.6,
+                  child: Image.file(File(p.file!.path), fit: BoxFit.cover),
+                )
+              else
+                Container(color: theme.background),
+              if (p.state == _ChecklistPhotoState.uploading)
+                const Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: AppColors.accent),
+                  ),
+                ),
+              if (p.state == _ChecklistPhotoState.error)
+                const Center(
+                  child: Icon(Icons.error_rounded,
+                      color: AppColors.error, size: 20),
+                ),
+              if (p.state == _ChecklistPhotoState.uploaded && !readOnly)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () => onRemovePhoto(itemId, p.key),
+                    child: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: AppColors.error,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.close_rounded,
+                          size: 12, color: Colors.white),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
