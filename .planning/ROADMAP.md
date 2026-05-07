@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 Foundation** — Phases 1–5 (shipped 2026-04-17)
 - ✅ **v1.1 Features & UX** — Phases 6–12 (shipped 2026-05-02)
-- 🔄 **v1.2 Checklist** — Phases 13–17 (in progress)
+- 🔄 **v1.2 Checklist** — Phases 13–17 (in progress; Phase 15 completa)
 
 ---
 
@@ -40,7 +40,7 @@ Archive: [.planning/milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
 
 - [ ] **Phase 13: DB Foundation + Template Management** — Banco de dados, migrations com seeds e telas de gerenciamento de templates
 - [x] **Phase 14: Checklist Execution Engine** — Fluxo completo de execução com todos os tipos de resposta e auto-save de rascunho — completed 2026-05-06
-- [ ] **Phase 15: Photos per Item** — Anexar fotos por item durante execução (câmera ou galeria)
+- [x] **Phase 15: Photos per Item** — Anexar fotos por item durante execução (câmera ou galeria) — completed 2026-05-07
 - [ ] **Phase 16: Digital Signature** — Captura de assinatura digital como sign-off ao finalizar checklist
 - [ ] **Phase 17: History + Conformity Indicators** — Listagem de checklists realizados com filtros e indicadores de conformidade
 
@@ -93,7 +93,7 @@ Plans:
 Plans:
 - [x] 15-01-PLAN.md — Migration SQL (checklist_item_images + bucket checklist-images + RLS Pattern 3) + model ChecklistItemImage + service ChecklistImageService + 4 test stubs (commits 3c85824, 2f6742e)
 - [x] 15-02-PLAN.md — [BLOCKING] supabase db push — aplica migration ao banco remoto (2026-05-07)
-- [ ] 15-03-PLAN.md — UI: _ChecklistPhotoStrip + _ChecklistPhotoEntry + _pickPhoto/_retryPhoto/_removePhoto + _load() estendido + remoção de _PhotoPlaceholder
+- [x] 15-03-PLAN.md — UI: _ChecklistPhotoStrip + _ChecklistPhotoEntry + _pickPhoto/_retryPhoto/_removePhoto + _load() estendido + remoção de _PhotoPlaceholder (commits 43d5289, 3b2e102)
 
 ### Phase 16: Digital Signature
 **Goal**: Auditores assinam digitalmente ao finalizar checklist e a assinatura fica vinculada à execução
@@ -136,8 +136,8 @@ Plans:
 | 11. Notifications | v1.1 | 0/? | Deferred | — |
 | 12. Navigation Refactor | v1.1 | 0/? | Cancelled | 2026-05-02 |
 | 13. DB Foundation + Template Management | v1.2 | 4/4 | Complete | 2026-05-04 |
-| 14. Checklist Execution Engine | v1.2 | 0/? | Not started | — |
-| 15. Photos per Item | v1.2 | 2/3 | Executing | — |
+| 14. Checklist Execution Engine | v1.2 | 5/5 | Complete | 2026-05-06 |
+| 15. Photos per Item | v1.2 | 3/3 | Complete | 2026-05-07 |
 | 16. Digital Signature | v1.2 | 0/? | Not started | — |
 | 17. History + Conformity Indicators | v1.2 | 0/? | Not started | — |
 

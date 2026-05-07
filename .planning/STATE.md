@@ -4,14 +4,14 @@ milestone: v1.2
 milestone_name: Checklist
 status: executing
 stopped_at: ""
-last_updated: "2026-05-07T23:25:00Z"
+last_updated: "2026-05-07T23:55:00Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 13
-  completed_plans: 11
-  percent: 43
+  completed_plans: 13
+  percent: 100
 phases:
   - id: 13
     name: DB Foundation + Template Management
@@ -21,7 +21,7 @@ phases:
     status: complete
   - id: 15
     name: Photos per Item
-    status: executing
+    status: complete
     plan_count: 3
   - id: 16
     name: Digital Signature
@@ -43,10 +43,10 @@ See: .planning/PROJECT.md (updated 2026-05-02)
 ## Current Position
 
 Phase: 15 — Photos per Item
-Status: Phase 15 EM EXECUÇÃO — Plan 15-01 e 15-02 concluídos; aguarda Plan 15-03 (UI _ChecklistPhotoStrip)
-Last activity: 2026-05-07 — Plan 15-02 concluído: supabase db push aplicou migration ao banco remoto (tabela + bucket + RLS ativas)
+Status: Phase 15 CONCLUÍDA — Plans 15-01, 15-02 e 15-03 concluídos; EXEC-04 entregue ponta a ponta
+Last activity: 2026-05-07 — Plan 15-03 concluído: _ChecklistPhotoStrip integrado, _PhotoPlaceholder removida, 293 testes passando
 
-Progress: [##--------] 43% (11/13 planos concluídos; Fase 15 2/3 planos concluídos)
+Progress: [#############] 100% (13/13 planos concluídos; milestone v1.2 Checklist completa)
 
 ## Accumulated Context
 
