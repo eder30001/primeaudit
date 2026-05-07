@@ -91,8 +91,8 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 15-01-PLAN.md — Migration SQL (checklist_item_images + bucket checklist-images + RLS Pattern 3) + model ChecklistItemImage + service ChecklistImageService + 4 test stubs
-- [ ] 15-02-PLAN.md — [BLOCKING] supabase db push — aplica migration ao banco remoto
+- [x] 15-01-PLAN.md — Migration SQL (checklist_item_images + bucket checklist-images + RLS Pattern 3) + model ChecklistItemImage + service ChecklistImageService + 4 test stubs (commits 3c85824, 2f6742e)
+- [x] 15-02-PLAN.md — [BLOCKING] supabase db push — aplica migration ao banco remoto (2026-05-07)
 - [ ] 15-03-PLAN.md — UI: _ChecklistPhotoStrip + _ChecklistPhotoEntry + _pickPhoto/_retryPhoto/_removePhoto + _load() estendido + remoção de _PhotoPlaceholder
 
 ### Phase 16: Digital Signature
@@ -137,7 +137,7 @@ Plans:
 | 12. Navigation Refactor | v1.1 | 0/? | Cancelled | 2026-05-02 |
 | 13. DB Foundation + Template Management | v1.2 | 4/4 | Complete | 2026-05-04 |
 | 14. Checklist Execution Engine | v1.2 | 0/? | Not started | — |
-| 15. Photos per Item | v1.2 | 0/3 | Not started | — |
+| 15. Photos per Item | v1.2 | 2/3 | Executing | — |
 | 16. Digital Signature | v1.2 | 0/? | Not started | — |
 | 17. History + Conformity Indicators | v1.2 | 0/? | Not started | — |
 
