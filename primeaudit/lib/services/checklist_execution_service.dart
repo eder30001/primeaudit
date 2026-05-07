@@ -58,6 +58,26 @@ class ChecklistExecutionService {
     return ChecklistExecution.fromMap(result);
   }
 
+  /// Lista execuções da empresa ordenadas por created_at DESC.
+  Future<List<ChecklistExecution>> getExecutions({required String? companyId}) async {
+    final userId = _client.auth.currentUser!.id;
+    final List data;
+    if (companyId != null) {
+      data = await _client
+          .from('checklist_executions')
+          .select(_select)
+          .eq('company_id', companyId)
+          .order('created_at', ascending: false);
+    } else {
+      data = await _client
+          .from('checklist_executions')
+          .select(_select)
+          .eq('created_by', userId)
+          .order('created_at', ascending: false);
+    }
+    return data.map((r) => ChecklistExecution.fromMap(r)).toList();
+  }
+
   /// Busca execução por id com join do nome do template.
   Future<ChecklistExecution> getExecution(String id) async {
     final result = await _client

@@ -25,6 +25,15 @@ class ChecklistTemplateService {
     return (data as List).map((e) => ChecklistTemplate.fromMap(e)).toList();
   }
 
+  /// Retorna todos os templates visíveis ao usuário (seeds + próprios).
+  Future<List<ChecklistTemplate>> getAll() async {
+    final data = await _client
+        .from('checklist_templates')
+        .select()
+        .order('name');
+    return (data as List).map((e) => ChecklistTemplate.fromMap(e)).toList();
+  }
+
   /// Retorna templates criados pelo usuário atual (aba "Meus checklists").
   Future<List<ChecklistTemplate>> getOwned() async {
     final userId = _client.auth.currentUser?.id;
