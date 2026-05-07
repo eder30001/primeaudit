@@ -9,7 +9,7 @@
 -- ----------------------------------------------------------------------------
 ALTER TABLE companies ADD COLUMN IF NOT EXISTS segment TEXT NOT NULL DEFAULT 'industrial';
 
-DROP CONSTRAINT IF EXISTS companies_segment_check ON companies;
+ALTER TABLE companies DROP CONSTRAINT IF EXISTS companies_segment_check;
 ALTER TABLE companies
   ADD CONSTRAINT companies_segment_check
   CHECK (segment IN ('industrial', 'transportador', 'construcao', 'alimenticio', 'logistica', 'outro'));
