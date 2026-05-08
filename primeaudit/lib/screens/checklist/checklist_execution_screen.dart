@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math' show pow;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 import 'package:image_picker/image_picker.dart';
@@ -1464,7 +1465,9 @@ class _ChecklistPhotoStrip extends StatelessWidget {
                 Opacity(
                   opacity:
                       p.state == _ChecklistPhotoState.error ? 0.4 : 0.6,
-                  child: Image.file(File(p.file!.path), fit: BoxFit.cover),
+                  child: kIsWeb
+                      ? Image.network(p.file!.path, fit: BoxFit.cover)
+                      : Image.file(File(p.file!.path), fit: BoxFit.cover),
                 )
               else
                 Container(color: theme.background),
