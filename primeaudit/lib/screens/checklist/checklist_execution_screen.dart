@@ -802,11 +802,6 @@ class _ChecklistItemCardState extends State<_ChecklistItemCard> {
                           height: 1.4,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      _Badge(
-                        label: widget.item.itemType,
-                        color: AppColors.accent,
-                      ),
                     ],
                   ),
                 ),
