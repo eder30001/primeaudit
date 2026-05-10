@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:math' show pow;
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/app_colors.dart';
 import '../core/app_theme.dart';
@@ -55,6 +59,11 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
   // Controle de retry em andamento por item (evita loops duplos)
   final Set<String> _retrying = {};
 
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
+  bool _isOnline = true;
+
+  static String _pendingKey(String auditId) => 'pending_saves_$auditId';
+
   bool _loading = true;
   bool _finalizing = false;
   String? _error;
@@ -63,6 +72,14 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
   void initState() {
     super.initState();
     _load();
+    _restorePendingSaves();
+    _listenConnectivity();
+  }
+
+  @override
+  void dispose() {
+    _connectivitySub?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -286,6 +303,7 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
       // Sucesso: se esse item estava na fila de falhas, remove.
       if (_failedSaves.containsKey(itemId) && mounted) {
         setState(() => _failedSaves.remove(itemId));
+        _persistPendingSaves();
       }
     } catch (e) {
       // D-07: não mascarar erros — log de dev + UI feedback + retry queue.
@@ -300,6 +318,7 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
       });
       _showSaveError(itemId, response, obs);
       _scheduleRetry(itemId);
+      _persistPendingSaves();
     }
   }
 
@@ -355,6 +374,7 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
           );
           if (mounted) {
             setState(() => _failedSaves.remove(itemId));
+            _persistPendingSaves();
           }
           break; // sucesso — sai do loop
         } catch (_) {
@@ -368,6 +388,62 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
     } finally {
       _retrying.remove(itemId);
     }
+  }
+
+  Future<void> _restorePendingSaves() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_pendingKey(widget.audit.id));
+    if (raw == null || !mounted) return;
+    try {
+      final list = (jsonDecode(raw) as List)
+          .map((e) => PendingSave.fromJson(e as Map<String, dynamic>))
+          .toList();
+      if (list.isNotEmpty && mounted) {
+        setState(() {
+          for (final p in list) {
+            _failedSaves[p.itemId] = p;
+          }
+        });
+        for (final p in list) {
+          _scheduleRetry(p.itemId);
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _persistPendingSaves() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_failedSaves.isEmpty) {
+      await prefs.remove(_pendingKey(widget.audit.id));
+    } else {
+      final json = jsonEncode(_failedSaves.values.map((p) => p.toJson()).toList());
+      await prefs.setString(_pendingKey(widget.audit.id), json);
+    }
+  }
+
+  void _listenConnectivity() {
+    _connectivitySub = Connectivity()
+        .onConnectivityChanged
+        .listen((results) async {
+      final online = results.any((r) => r != ConnectivityResult.none);
+      if (!mounted) return;
+      final wasOffline = !_isOnline;
+      setState(() => _isOnline = online);
+      if (online && wasOffline && _failedSaves.isNotEmpty) {
+        await _syncAll();
+      }
+    });
+  }
+
+  Future<void> _syncAll() async {
+    final items = Map<String, _PendingSave>.from(_failedSaves);
+    await Future.wait(
+      items.entries.map((e) => _saveAnswer(
+            e.key,
+            e.value.response,
+            observation: e.value.observation,
+          )),
+    );
   }
 
   // ── Finalizar ────────────────────────────────────────────────────────────
@@ -549,17 +625,54 @@ class _AuditExecutionScreenState extends State<AuditExecutionScreen> {
   Widget build(BuildContext context) {
     final t = AppTheme.of(context);
 
+    Widget body;
+    if (_loading) {
+      body = const Center(child: CircularProgressIndicator(color: AppColors.primary));
+    } else if (_error != null) {
+      body = _buildError(t);
+    } else {
+      body = _buildBody(t);
+    }
+
+    // Banner offline/sync — aparece como faixa no topo do body
+    if (!_loading && _error == null && (!_isOnline || _failedSaves.isNotEmpty)) {
+      final isOffline = !_isOnline;
+      final pending = _failedSaves.length;
+      final label = isOffline
+          ? 'Sem sinal${pending > 0 ? ' · $pending pendente${pending > 1 ? 's' : ''}' : ''}'
+          : 'Sincronizando $pending item${pending > 1 ? 's' : ''}...';
+      final color = isOffline ? Colors.orange.shade800 : Colors.blue.shade700;
+      body = Column(
+        children: [
+          Container(
+            width: double.infinity,
+            color: color,
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isOffline ? Icons.wifi_off_rounded : Icons.sync_rounded,
+                  size: 14,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 6),
+                Text(label,
+                    style: const TextStyle(
+                        fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500)),
+              ],
+            ),
+          ),
+          Expanded(child: body),
+        ],
+      );
+    }
+
     return Scaffold(
       backgroundColor: t.background,
       appBar: _buildAppBar(t),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : _error != null
-              ? _buildError(t)
-              : _buildBody(t),
-      bottomNavigationBar: (!_loading && _error == null)
-          ? _buildBottomBar(t)
-          : null,
+      body: body,
+      bottomNavigationBar: (!_loading && _error == null) ? _buildBottomBar(t) : null,
     );
   }
 

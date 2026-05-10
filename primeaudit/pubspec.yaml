@@ -36,6 +36,7 @@ dependencies:
   shared_preferences: ^2.3.3
   fl_chart: ^1.2.0
   image_picker: ^1.1.2    # camera + gallery picker (Phase 9)
+  connectivity_plus: ^6.1.4
 
 dev_dependencies:
   flutter_test:

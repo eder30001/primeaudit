@@ -24,4 +24,18 @@ class PendingSave {
         observation: observation,
         attemptCount: attemptCount + 1,
       );
+
+  factory PendingSave.fromJson(Map<String, dynamic> json) => PendingSave(
+        itemId: json['itemId'] as String,
+        response: json['response'] as String,
+        observation: json['observation'] as String?,
+        attemptCount: (json['attemptCount'] as int?) ?? 0,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'itemId': itemId,
+        'response': response,
+        if (observation != null) 'observation': observation,
+        'attemptCount': attemptCount,
+      };
 }
