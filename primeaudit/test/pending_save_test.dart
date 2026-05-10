@@ -3,7 +3,7 @@
 // retry com backoff exponencial da tela de execução de auditoria.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/screens/pending_save.dart';
+import 'package:qaudit/screens/pending_save.dart';
 
 void main() {
   group('PendingSave', () {

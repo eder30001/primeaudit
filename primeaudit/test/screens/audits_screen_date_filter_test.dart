@@ -5,7 +5,7 @@
 // Requirements: CAL-02 (date filter in _filtered, chip clear behavior)
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/models/audit.dart';
+import 'package:qaudit/models/audit.dart';
 
 // ── Test factory ──────────────────────────────────────────────────────────────
 

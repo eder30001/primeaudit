@@ -5,7 +5,7 @@
 // Requirements: CAL-01 (bucketing, status groups, month filter, D-03, UTC pitfall)
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/models/audit.dart';
+import 'package:qaudit/models/audit.dart';
 
 // ── Test factory ──────────────────────────────────────────────────────────────
 

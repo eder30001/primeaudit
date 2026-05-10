@@ -3,7 +3,7 @@
 // plus status enum mapping and numeric/date optional fields.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/models/audit.dart';
+import 'package:qaudit/models/audit.dart';
 
 Map<String, dynamic> _fullAuditMap() => <String, dynamic>{
   'id': 'a1',

@@ -2,7 +2,7 @@
 // AuditAnswer is the flattest of the models — no nested joins.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/models/audit_answer.dart';
+import 'package:qaudit/models/audit_answer.dart';
 
 Map<String, dynamic> _baseMap() => <String, dynamic>{
   'id': 'aa1',

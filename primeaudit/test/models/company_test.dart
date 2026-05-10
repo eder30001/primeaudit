@@ -1,7 +1,7 @@
 // Unit tests for Company.fromMap (QUAL-03).
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/models/company.dart';
+import 'package:qaudit/models/company.dart';
 
 Map<String, dynamic> _baseMap() => <String, dynamic>{
   'id': 'c1',

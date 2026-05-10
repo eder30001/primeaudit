@@ -2,7 +2,7 @@
 // Covers TMPLCK-01, TMPLCK-02, TMPLCK-03, TMPLCK-04.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/models/checklist_template.dart';
+import 'package:qaudit/models/checklist_template.dart';
 
 Map<String, dynamic> _templateMap() => <String, dynamic>{
   'id': 'tmpl-1',

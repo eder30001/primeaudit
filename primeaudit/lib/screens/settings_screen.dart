@@ -326,10 +326,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return _sectionCard(
       title: 'Sobre',
       icon: Icons.info_outline_rounded,
-      child: _infoTile(
-        icon: Icons.assignment_turned_in_rounded,
-        title: 'QAudit',
-        value: 'Versão 1.0.0',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.asset(
+                'assets/logo/qaudit_icon_1024.png',
+                width: 38,
+                height: 38,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text('QAudit',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+            ),
+            Text('Versão 1.0.0',
+                style: TextStyle(
+                    fontSize: 13, color: AppTheme.of(context).textSecondary)),
+          ],
+        ),
       ),
     );
   }

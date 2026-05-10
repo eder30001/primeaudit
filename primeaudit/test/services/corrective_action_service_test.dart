@@ -1,8 +1,8 @@
 // Unit tests para funções estáticas de CorrectiveActionService.
 // NÃO instancia CorrectiveActionService (Supabase.instance.client throws em testes).
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/services/corrective_action_service.dart';
-import 'package:primeaudit/models/corrective_action.dart';
+import 'package:qaudit/services/corrective_action_service.dart';
+import 'package:qaudit/models/corrective_action.dart';
 
 CorrectiveAction _action({
   String id = 'ca1',

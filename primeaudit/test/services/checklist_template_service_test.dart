@@ -7,7 +7,7 @@
 //           TMPLCK-05 (cloneTemplate — sequential header + items + rollback).
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/services/checklist_template_service.dart';
+import 'package:qaudit/services/checklist_template_service.dart';
 
 void main() {
   // Service tests are integration tests requiring a live Supabase session.

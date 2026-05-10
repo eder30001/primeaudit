@@ -1,7 +1,7 @@
 // Unit tests for TemplateItem.fromMap and AuditTemplate.fromMap (QUAL-03).
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/models/audit_template.dart';
+import 'package:qaudit/models/audit_template.dart';
 
 Map<String, dynamic> _itemMap() => <String, dynamic>{
   'id': 'ti1',

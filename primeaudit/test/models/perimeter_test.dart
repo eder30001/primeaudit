@@ -3,7 +3,7 @@
 // Perimeter instances via _p() — never share instances across tests.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/models/perimeter.dart';
+import 'package:qaudit/models/perimeter.dart';
 
 Perimeter _p(String id, {String? parentId}) => Perimeter(
   id: id,

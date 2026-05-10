@@ -137,18 +137,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildHeader() {
     return Column(
       children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Icon(
-            Icons.assignment_turned_in_rounded,
-            color: Colors.white,
-            size: 44,
-          ),
+        Image.asset(
+          'assets/logo/qaudit_icon_1024.png',
+          width: 88,
+          height: 88,
         ),
         const SizedBox(height: 20),
         const Text(

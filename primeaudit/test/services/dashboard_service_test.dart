@@ -5,7 +5,7 @@
 // Requirements: DASH-01 (KPI counts, role scope, fallback), DASH-03 (chart data)
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/models/audit.dart';
+import 'package:qaudit/models/audit.dart';
 
 // ── Test factory ──────────────────────────────────────────────────────────────
 

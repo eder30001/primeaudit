@@ -4,7 +4,7 @@
 // does not exist in app_roles.dart (see 03-RESEARCH.md Pitfall 4).
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/core/app_roles.dart';
+import 'package:qaudit/core/app_roles.dart';
 
 void main() {
   group('AppRole.canAccessAdmin', () {

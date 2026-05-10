@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/core/cnpj_validator.dart';
+import 'package:qaudit/core/cnpj_validator.dart';
 
 void main() {
   group('isValidCnpj', () {

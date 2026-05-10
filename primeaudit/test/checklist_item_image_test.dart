@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/models/checklist_item_image.dart';
+import 'package:qaudit/models/checklist_item_image.dart';
 
 void main() {
   group('ChecklistItemImage.fromMap', () {

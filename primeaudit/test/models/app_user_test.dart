@@ -4,7 +4,7 @@
 // and it maps the `profiles` table.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/models/app_user.dart';
+import 'package:qaudit/models/app_user.dart';
 
 Map<String, dynamic> _baseMap() => <String, dynamic>{
   'id': 'u1',

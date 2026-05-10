@@ -4,8 +4,8 @@
 // (the `_client = Supabase.instance.client` field would throw in tests).
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:primeaudit/services/audit_answer_service.dart';
-import 'package:primeaudit/models/audit_template.dart';
+import 'package:qaudit/services/audit_answer_service.dart';
+import 'package:qaudit/models/audit_template.dart';
 
 TemplateItem _item({
   String id = 'i1',
