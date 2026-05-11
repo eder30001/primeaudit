@@ -1,4 +1,4 @@
-package com.example.qaudit
+package br.com.qaudit.app
 
 import io.flutter.embedding.android.FlutterActivity
 
