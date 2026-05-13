@@ -879,7 +879,7 @@ class _NewAuditSheetState extends State<_NewAuditSheet> {
     try {
       final companyId = widget.companyId;
       final results = await Future.wait([
-        _templateService.getTypes(companyId: companyId),
+        _templateService.getTypesCached(companyId: companyId),
         companyId != null
             ? _perimeterService.getByCompany(companyId)
             : Future.value(<Perimeter>[]),
@@ -902,12 +902,13 @@ class _NewAuditSheetState extends State<_NewAuditSheet> {
   Future<void> _loadTemplates(String typeId) async {
     setState(() { _loadingTemplates = true; _templates = []; _selectedTemplate = null; });
     try {
-      final data = await _templateService.getTemplates(
+      final data = await _templateService.getTemplatesCached(
         typeId: typeId,
         companyId: widget.companyId,
       );
       if (mounted) setState(() => _templates = data);
-    } catch (_) {
+    } catch (e) {
+      if (mounted) _snack('Erro ao carregar templates: $e');
     } finally {
       if (mounted) setState(() => _loadingTemplates = false);
     }

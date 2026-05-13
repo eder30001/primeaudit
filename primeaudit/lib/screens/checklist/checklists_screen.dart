@@ -89,7 +89,8 @@ class _ChecklistsScreenState extends State<ChecklistsScreen> {
         e.templateName.toLowerCase().contains(_searchQuery) ||
         e.responsavel.toLowerCase().contains(_searchQuery) ||
         e.local.toLowerCase().contains(_searchQuery) ||
-        (e.numero?.toLowerCase().contains(_searchQuery) ?? false),
+        (e.numero?.toLowerCase().contains(_searchQuery) ?? false) ||
+        (e.veiculoPlaca?.toLowerCase().contains(_searchQuery) ?? false),
       ).toList();
     }
 
@@ -599,7 +600,6 @@ class _NewChecklistSheetState extends State<_NewChecklistSheet> {
 
   final _responsavelCtrl = TextEditingController();
   final _localCtrl = TextEditingController();
-  final _numeroCtrl = TextEditingController();
   final _placaCtrl = TextEditingController();
 
   List<ChecklistTemplate> _templates = [];
@@ -624,7 +624,6 @@ class _NewChecklistSheetState extends State<_NewChecklistSheet> {
   void dispose() {
     _responsavelCtrl.dispose();
     _localCtrl.dispose();
-    _numeroCtrl.dispose();
     _placaCtrl.dispose();
     super.dispose();
   }
@@ -676,7 +675,7 @@ class _NewChecklistSheetState extends State<_NewChecklistSheet> {
         veiculoPlaca: _showPlaca && _placaCtrl.text.trim().isNotEmpty
             ? _placaCtrl.text.trim().toUpperCase()
             : null,
-        numero: _numeroCtrl.text.trim().isEmpty ? null : _numeroCtrl.text.trim(),
+        numero: null,
         dataExecucao: _dataExecucao,
       );
       if (mounted) Navigator.pop(context);
@@ -731,11 +730,12 @@ class _NewChecklistSheetState extends State<_NewChecklistSheet> {
                 ? const Center(child: CircularProgressIndicator())
                 : DropdownButtonFormField<ChecklistTemplate>(
                     initialValue: _selectedTemplate,
+                    isExpanded: true,
                     hint: Text('Selecione um template',
                         style: TextStyle(color: t.textSecondary, fontSize: 14)),
                     items: _templates.map((tpl) => DropdownMenuItem(
                       value: tpl,
-                      child: Text(tpl.name, overflow: TextOverflow.ellipsis),
+                      child: Text(tpl.name, overflow: TextOverflow.ellipsis, maxLines: 1),
                     )).toList(),
                     onChanged: (v) => setState(() {
                       _selectedTemplate = v;
@@ -780,12 +780,6 @@ class _NewChecklistSheetState extends State<_NewChecklistSheet> {
                           labelText: 'Data de execução *'),
                       child: Text(_displayDate),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _numeroCtrl,
-                    decoration: const InputDecoration(
-                        labelText: 'Número/código (opcional)'),
                   ),
                   if (_showPlaca) ...[
                     const SizedBox(height: 12),

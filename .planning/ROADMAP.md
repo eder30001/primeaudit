@@ -41,8 +41,8 @@ Archive: [.planning/milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
 - [ ] **Phase 13: DB Foundation + Template Management** — Banco de dados, migrations com seeds e telas de gerenciamento de templates
 - [x] **Phase 14: Checklist Execution Engine** — Fluxo completo de execução com todos os tipos de resposta e auto-save de rascunho — completed 2026-05-06
 - [x] **Phase 15: Photos per Item** — Anexar fotos por item durante execução (câmera ou galeria) — completed 2026-05-07
-- [ ] **Phase 16: Digital Signature** — Captura de assinatura digital como sign-off ao finalizar checklist
-- [ ] **Phase 17: History + Conformity Indicators** — Listagem de checklists realizados com filtros e indicadores de conformidade
+- [~] **Phase 16: Digital Signature** — Cancelada 2026-05-09
+- [~] **Phase 17: History + Conformity Indicators** — Cancelada 2026-05-09
 
 ---
 
@@ -138,8 +138,8 @@ Plans:
 | 13. DB Foundation + Template Management | v1.2 | 4/4 | Complete | 2026-05-04 |
 | 14. Checklist Execution Engine | v1.2 | 5/5 | Complete | 2026-05-06 |
 | 15. Photos per Item | v1.2 | 3/3 | Complete | 2026-05-07 |
-| 16. Digital Signature | v1.2 | 0/? | Not started | — |
-| 17. History + Conformity Indicators | v1.2 | 0/? | Not started | — |
+| 16. Digital Signature | v1.2 | 0/? | Cancelled | 2026-05-09 |
+| 17. History + Conformity Indicators | v1.2 | 0/? | Cancelled | 2026-05-09 |
 
 ---
 
@@ -150,6 +150,22 @@ Plans:
 **Goal:** No campo de responsável das ações corretivas, adicionar opção "Convidar por email" para casos em que o responsável ainda não está cadastrado no sistema. A ação fica vinculada ao e-mail até o cadastro ser concluído.
 **Requirements:** TBD
 **Context:** Hoje o dropdown só lista usuários cadastrados em `profiles`. Em cenários onde o responsável é externo ou ainda não tem conta, o auditor fica bloqueado sem poder atribuir a ação. Fluxo sugerido: dropdown normal + opção de digitar e-mail manualmente; o sistema envia convite e vincula a ação ao perfil quando criado.
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promover com /gsd-review-backlog quando pronto)
+
+### Phase 999.2: Modo offline para auditorias e checklists (BACKLOG)
+
+**Goal:** Auditores conseguem executar auditorias e checklists sem sinal de rede. Dados existentes são exibidos mesmo offline, respostas preenchidas são enfileiradas localmente e sincronizadas automaticamente quando a conexão retornar.
+**Requirements:** TBD
+**Context:** Hoje, ao desligar o WiFi, o app não exibe dados do usuário nem permite continuar o preenchimento — qualquer tentativa de carregar dados falha sem fallback local. Auditores frequentemente trabalham em ambientes industriais com cobertura de rede intermitente (galpões, áreas externas, subsolos). O Core Value do produto ("nenhum dado preenchido em campo deve ser perdido") exige suporte offline real.
+**Escopo sugerido:**
+- Cache local de auditorias/checklists em andamento (SQLite via `sqflite` ou Hive)
+- Fila de operações pendentes (respostas, fotos) com sync automático ao reconectar
+- Indicador visual de status de conexão e itens pendentes de sincronização
+- Detecção de conflito (resposta local vs. resposta salva por outro dispositivo)
+**Dependência:** Requer refactor de estado (hoje `setState` puro) — avaliar introdução de Riverpod ou similar nesta fase
 **Plans:** 0 plans
 
 Plans:

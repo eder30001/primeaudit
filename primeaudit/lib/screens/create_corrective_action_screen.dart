@@ -122,19 +122,23 @@ class _CreateCorrectiveActionScreenState
         createdBy: currentUser.id,
       );
 
-      // Vincula as fotos já enviadas a esta ação específica
+      // Vincula as fotos já enviadas a esta ação específica (best-effort)
       final uploadedIds = _photos
           .where((p) => p.state == _PhotoState.uploaded && p.image != null)
           .map((p) => p.image!.id)
           .toList();
       if (uploadedIds.isNotEmpty) {
-        await _imageService.linkImagesToAction(uploadedIds, actionId);
+        try {
+          await _imageService.linkImagesToAction(uploadedIds, actionId);
+        } catch (_) {
+          // Ação já criada — link de imagens falhou, mas não bloqueia o fluxo
+        }
       }
 
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
-      _snack('Erro ao criar ação. Tente novamente.');
+      _snack('Erro ao criar ação: $e');
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
