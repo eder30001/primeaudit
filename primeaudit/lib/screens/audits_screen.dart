@@ -882,6 +882,7 @@ class _NewAuditSheetState extends State<_NewAuditSheet> {
         _templateService.getTypesCached(companyId: companyId),
         companyId != null
             ? _perimeterService.getByCompany(companyId)
+                .catchError((_) => <Perimeter>[])
             : Future.value(<Perimeter>[]),
       ]);
 
