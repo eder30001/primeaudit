@@ -1,10 +1,11 @@
-# Roadmap: PrimeAudit
+# Roadmap: QAudit
 
 ## Milestones
 
 - ✅ **v1.0 Foundation** — Phases 1–5 (shipped 2026-04-17)
 - ✅ **v1.1 Features & UX** — Phases 6–12 (shipped 2026-05-02)
-- 🔄 **v1.2 Checklist** — Phases 13–17 (in progress; Phase 15 completa)
+- ✅ **v1.2 Checklist** — Phases 13–15 (shipped 2026-05-13)
+- 🔄 **v1.3** — Phases 18+ (planning)
 
 ---
 
@@ -36,86 +37,22 @@ Archive: [.planning/milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
 
 </details>
 
-### v1.2 Checklist (Phases 13–17)
+<details>
+<summary>✅ v1.2 Checklist (Phases 13–15) — SHIPPED 2026-05-13</summary>
 
-- [ ] **Phase 13: DB Foundation + Template Management** — Banco de dados, migrations com seeds e telas de gerenciamento de templates
-- [x] **Phase 14: Checklist Execution Engine** — Fluxo completo de execução com todos os tipos de resposta e auto-save de rascunho — completed 2026-05-06
-- [x] **Phase 15: Photos per Item** — Anexar fotos por item durante execução (câmera ou galeria) — completed 2026-05-07
-- [~] **Phase 16: Digital Signature** — Cancelada 2026-05-09
-- [~] **Phase 17: History + Conformity Indicators** — Cancelada 2026-05-09
+- [x] Phase 13: DB Foundation + Template Management — completed 2026-05-04
+- [x] Phase 14: Checklist Execution Engine — completed 2026-05-06
+- [x] Phase 15: Photos per Item — completed 2026-05-07
+- [~] Phase 16: Digital Signature — Cancelled 2026-05-09 → deferred to v1.3
+- [~] Phase 17: History + Conformity Indicators — Cancelled 2026-05-09 → deferred to v1.3
 
----
+Archive: [.planning/milestones/v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md)
 
-## Phase Details
+</details>
 
-### Phase 13: DB Foundation + Template Management
-**Goal**: Auditores podem navegar, criar, editar e clonar templates de checklist por categoria
-**Depends on**: Nothing (first phase of v1.2)
-**Requirements**: TMPLCK-01, TMPLCK-02, TMPLCK-03, TMPLCK-04, TMPLCK-05, TMPLCK-06, NAV-01
-**Success Criteria** (what must be TRUE):
-  1. Usuário vê entrada "Checklist" no drawer e acessa a tela de templates sem erro
-  2. Templates listados nas abas Industrial, Transportadora e Meus checklists; 10 seeds seed visíveis nas duas primeiras abas para qualquer perfil (incluindo auditor)
-  3. Usuário cria template customizado com nome, categoria, descrição e itens; template aparece na aba "Meus checklists"
-  4. Usuário clona qualquer template seed ou próprio; clone aparece em "Meus checklists" com todos os itens intactos (sem seções órfãs)
-  5. Usuário edita e exclui apenas templates próprios; seeds não têm opção de exclusão
-**Plans**: 4 plans
-**UI hint**: yes
+### v1.3 (Planning)
 
-Plans:
-- [x] 13-01-PLAN.md — DB migration: tables, RLS policies, 10 seed templates (commit 53a1fbf; aguarda supabase db push)
-- [x] 13-02-PLAN.md — Dart model + service layer + unit tests (commits f2877b0, 0ae316c)
-- [x] 13-03-PLAN.md — ChecklistTemplatesScreen (3-tab list, cards, clone, delete) + drawer entry (commits f222262, 21535d8)
-- [x] 13-04-PLAN.md — ChecklistTemplateFormScreen (create/edit form with items list) (commit 2d6d899)
-
-### Phase 14: Checklist Execution Engine
-**Goal**: Auditores preenchem um checklist completo com todos os tipos de resposta e o rascunho é salvo automaticamente sem bloqueio
-**Depends on**: Phase 13
-**Requirements**: EXEC-01, EXEC-02, EXEC-03, EXEC-05
-**Success Criteria** (what must be TRUE):
-  1. Usuário inicia execução preenchendo responsável, local, data e número; execução é criada com status rascunho
-  2. Usuário responde itens Sim/Não, texto, número, data e múltipla escolha; cada resposta persiste sem intervenção manual
-  3. Usuário adiciona observação opcional por item; observação é salva junto com a resposta
-  4. Com WiFi desligado, o preenchimento continua sem modal de erro; ao reconectar, as respostas pendentes são enviadas
-  5. Usuário finaliza checklist; conformidade calculada e status muda para concluído
-**Plans**: TBD
-
-### Phase 15: Photos per Item
-**Goal**: Auditores anexam fotos por item durante execução sem risco de perder respostas já salvas
-**Depends on**: Phase 14
-**Requirements**: EXEC-04
-**Success Criteria** (what must be TRUE):
-  1. Usuário abre opção de foto por item e seleciona câmera ou galeria; imagem aparece como miniatura inline
-  2. Múltiplas fotos por item são suportadas; miniaturas visíveis durante o preenchimento
-  3. Falha no upload de foto exibe mensagem de erro mas não interrompe o salvamento de respostas nem a finalização do checklist
-**Plans**: 3 plans
-**UI hint**: yes
-
-Plans:
-- [x] 15-01-PLAN.md — Migration SQL (checklist_item_images + bucket checklist-images + RLS Pattern 3) + model ChecklistItemImage + service ChecklistImageService + 4 test stubs (commits 3c85824, 2f6742e)
-- [x] 15-02-PLAN.md — [BLOCKING] supabase db push — aplica migration ao banco remoto (2026-05-07)
-- [x] 15-03-PLAN.md — UI: _ChecklistPhotoStrip + _ChecklistPhotoEntry + _pickPhoto/_retryPhoto/_removePhoto + _load() estendido + remoção de _PhotoPlaceholder (commits 43d5289, 3b2e102)
-
-### Phase 16: Digital Signature
-**Goal**: Auditores assinam digitalmente ao finalizar checklist e a assinatura fica vinculada à execução
-**Depends on**: Phase 14
-**Requirements**: EXEC-06
-**Success Criteria** (what must be TRUE):
-  1. Ao finalizar, usuário vê tela/modal de assinatura digital com canvas de desenho
-  2. Usuário assina, confirma e o checklist é concluído; assinatura salva como PNG no Supabase Storage
-  3. Campo signature_path preenchido na execução; usuário pode visualizar a assinatura ao rever o checklist
-**Plans**: TBD
-**UI hint**: yes
-
-### Phase 17: History + Conformity Indicators
-**Goal**: Auditores visualizam todos os checklists realizados com filtros e indicadores de conformidade
-**Depends on**: Phase 13, Phase 14
-**Requirements**: HIST-01, HIST-02, HIST-03
-**Success Criteria** (what must be TRUE):
-  1. Tela de histórico lista checklists realizados com filtros funcionais por data, tipo, responsável e local
-  2. Cada item na listagem exibe indicador de conformidade (% e total de itens NOK)
-  3. Usuário abre checklist concluído em modo leitura e vê todas as respostas, observações e fotos
-**Plans**: TBD
-**UI hint**: yes
+- [ ] Phase 18: TBD
 
 ---
 
@@ -138,8 +75,9 @@ Plans:
 | 13. DB Foundation + Template Management | v1.2 | 4/4 | Complete | 2026-05-04 |
 | 14. Checklist Execution Engine | v1.2 | 5/5 | Complete | 2026-05-06 |
 | 15. Photos per Item | v1.2 | 3/3 | Complete | 2026-05-07 |
-| 16. Digital Signature | v1.2 | 0/? | Cancelled | 2026-05-09 |
-| 17. History + Conformity Indicators | v1.2 | 0/? | Cancelled | 2026-05-09 |
+| 16. Digital Signature | v1.2 | 0/? | Cancelled → v1.3 | 2026-05-09 |
+| 17. History + Conformity | v1.2 | 0/? | Cancelled → v1.3 | 2026-05-09 |
+| 18. TBD | v1.3 | 0/? | Planning | — |
 
 ---
 
@@ -147,9 +85,7 @@ Plans:
 
 ### Phase 999.1: Responsável externo por email nas ações corretivas (BACKLOG)
 
-**Goal:** No campo de responsável das ações corretivas, adicionar opção "Convidar por email" para casos em que o responsável ainda não está cadastrado no sistema. A ação fica vinculada ao e-mail até o cadastro ser concluído.
-**Requirements:** TBD
-**Context:** Hoje o dropdown só lista usuários cadastrados em `profiles`. Em cenários onde o responsável é externo ou ainda não tem conta, o auditor fica bloqueado sem poder atribuir a ação. Fluxo sugerido: dropdown normal + opção de digitar e-mail manualmente; o sistema envia convite e vincula a ação ao perfil quando criado.
+**Goal:** No campo de responsável das ações corretivas, adicionar opção "Convidar por email" para casos em que o responsável ainda não está cadastrado no sistema.
 **Plans:** 0 plans
 
 Plans:
@@ -157,15 +93,8 @@ Plans:
 
 ### Phase 999.2: Modo offline para auditorias e checklists (BACKLOG)
 
-**Goal:** Auditores conseguem executar auditorias e checklists sem sinal de rede. Dados existentes são exibidos mesmo offline, respostas preenchidas são enfileiradas localmente e sincronizadas automaticamente quando a conexão retornar.
-**Requirements:** TBD
-**Context:** Hoje, ao desligar o WiFi, o app não exibe dados do usuário nem permite continuar o preenchimento — qualquer tentativa de carregar dados falha sem fallback local. Auditores frequentemente trabalham em ambientes industriais com cobertura de rede intermitente (galpões, áreas externas, subsolos). O Core Value do produto ("nenhum dado preenchido em campo deve ser perdido") exige suporte offline real.
-**Escopo sugerido:**
-- Cache local de auditorias/checklists em andamento (SQLite via `sqflite` ou Hive)
-- Fila de operações pendentes (respostas, fotos) com sync automático ao reconectar
-- Indicador visual de status de conexão e itens pendentes de sincronização
-- Detecção de conflito (resposta local vs. resposta salva por outro dispositivo)
-**Dependência:** Requer refactor de estado (hoje `setState` puro) — avaliar introdução de Riverpod ou similar nesta fase
+**Goal:** Auditores conseguem executar auditorias e checklists sem sinal de rede com sync automático ao reconectar.
+**Context:** Explorado em v1.2 com SharedPreferences — revertido. Requer sqflite/Hive + refactor de estado (Riverpod).
 **Plans:** 0 plans
 
 Plans:
