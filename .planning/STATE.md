@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.3
-milestone_name: TBD
+milestone_name: Notificações
 status: planning
 stopped_at: ""
-last_updated: "2026-05-13T20:30:00Z"
+last_updated: "2026-05-13T21:00:00Z"
 last_activity: 2026-05-13
 ---
 
@@ -19,9 +19,9 @@ See: .planning/PROJECT.md (updated 2026-05-13)
 
 ## Current Position
 
-Phase: — (entre milestones)
-Status: v1.2 ENCERRADO — iniciando planejamento de v1.3
-Last activity: 2026-05-13 — v1.2 arquivado
+Phase: — (definindo requisitos)
+Status: Definindo requisitos para v1.3 Notificações
+Last activity: 2026-05-13 — Milestone v1.3 iniciado
 
 ## Deferred Items (acknowledged at v1.2 close)
 

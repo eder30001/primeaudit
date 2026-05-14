@@ -6,7 +6,19 @@ App Flutter para realização de auditorias industriais e checklists em campo. A
 
 Funcionalidades ativas: dashboard com KPIs reais e calendário, ações corretivas com fluxo CAPA completo, upload de fotos por pergunta, módulo de checklist independente (templates, execução, fotos).
 
-## Current State — v1.2 Shipped
+## Current Milestone: v1.3 Notificações
+
+**Goal:** Auditores recebem notificações push no dispositivo quando ações corretivas são atribuídas/atualizadas e quando auditorias são criadas com eles como responsável.
+
+**Target features:**
+- FCM (Firebase Cloud Messaging) integrado ao app Android
+- Registro e armazenamento de device token por usuário autenticado
+- Push ao atribuir ação corretiva a um usuário
+- Push ao alterar status de ação que me foi atribuída ou que criei
+- Push ao criar auditoria com meu perfil como responsável
+- Backend: Supabase Edge Functions ou Database Webhooks para disparar FCM
+
+## Previous Milestone — v1.2 Shipped
 
 **Shipped:** 2026-05-13
 **Codebase:** ~17.000 LOC Dart, arquitetura 3 camadas (screens → services → models)
@@ -45,12 +57,10 @@ Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencios
 
 ### Active (v1.3)
 
-- [ ] Histórico de checklists com filtros (data, tipo, responsável, local) — HIST-01
-- [ ] Visualização de checklist concluído em modo leitura — HIST-02
-- [ ] Indicadores de conformidade no histórico de checklists — HIST-03
-- [ ] Assinatura digital ao finalizar checklist — EXEC-06
-- [ ] Ações corretivas vinculadas a itens NOK do checklist — CAPA-CK-01
-- [ ] Notificações in-app para ações atribuídas — NOTIF-01/02 (deferred from v1.1)
+- [ ] Usuário recebe push quando ação corretiva é atribuída a ele — NOTIF-01
+- [ ] Usuário recebe push quando status de ação atribuída ou criada por ele é alterado — NOTIF-02
+- [ ] Usuário recebe push quando auditoria é criada com ele como responsável — NOTIF-03
+- [ ] Device token do dispositivo é registrado e atualizado no backend por sessão — NOTIF-04
 
 ### Out of Scope
 
@@ -58,8 +68,12 @@ Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencios
 - Exportação em PDF — v2, após histórico e conformidade estarem estáveis
 - Relatórios consolidados multi-empresa — admin feature de v2
 - FAB expandível + drawer simplificado — cancelado em v1.1
-- Notificações por prazo vencendo (cron) — v2+
-- Assinatura digital — deferred para v1.3
+- Notificações por prazo vencendo (cron) — v2+ (requer pg_cron ou Edge Function agendada)
+- Assinatura digital ao finalizar checklist (EXEC-06) — v1.4+
+- Histórico de checklists com filtros e conformidade (HIST-01/02/03) — v1.4+
+- Ações corretivas vinculadas a itens NOK do checklist (CAPA-CK-01) — v1.4+
+- UI in-app de notificações (badge, tela de histórico) — v1.4+ se necessário
+- iOS push notifications (APN) — Android first em v1.3
 
 ## Context
 
@@ -100,4 +114,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-*Last updated: 2026-05-13 — v1.2 Checklist milestone shipped*
+*Last updated: 2026-05-13 — v1.3 Notificações milestone iniciado*
