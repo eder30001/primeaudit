@@ -68,9 +68,9 @@
 
 **Coverage:**
 - v1.3 requirements: 8 total
-- Mapped to phases: TBD (roadmapper)
-- Unmapped: TBD
+- Mapped to phases: 8/8
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-13*
-*Last updated: 2026-05-13 — milestone v1.3 initial definition*
+*Last updated: 2026-05-13 — traceability complete, roadmap phases 18–20 assigned*
