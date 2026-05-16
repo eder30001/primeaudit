@@ -5,7 +5,7 @@
 - ✅ **v1.0 Foundation** — Phases 1–5 (shipped 2026-04-17)
 - ✅ **v1.1 Features & UX** — Phases 6–12 (shipped 2026-05-02)
 - ✅ **v1.2 Checklist** — Phases 13–15 (shipped 2026-05-13)
-- 🔄 **v1.3 Notificações** — Phases 18–20 (active)
+- 🔄 **v1.3 Onboarding, Billing & Notificações** — Phases 18–23 (active)
 
 ---
 
@@ -50,11 +50,14 @@ Archive: [.planning/milestones/v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md)
 
 </details>
 
-### v1.3 Notificações (Phases 18–20)
+### v1.3 Onboarding, Billing & Notificações (Phases 18–23)
 
 - [ ] **Phase 18: Firebase Infrastructure** - Configurar FCM no Android e criar tabela device_tokens no Supabase
 - [ ] **Phase 19: Token Registration** - App solicita permissão e registra device token no backend ao autenticar
 - [ ] **Phase 20: Backend Triggers + Push Dispatch** - Edge Functions disparam pushes FCM nos eventos de ação e auditoria
+- [ ] **Phase 21: Company Self-Registration** - Owner cria empresa no ato do cadastro quando CNPJ não existe na base
+- [ ] **Phase 22: Asaas Billing Integration** - Trial 30 dias → cobrança automática Asaas → controle de licença no app
+- [ ] **Phase 23: Invite Users by Email** - Admin convida usuários por email via Edge Function — conta criada já vinculada à empresa
 
 ---
 
@@ -93,6 +96,43 @@ Archive: [.planning/milestones/v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md)
   5. O push não é disparado para o próprio usuário que executou a ação (sem auto-notificação)
 **Plans**: TBD
 
+### Phase 21: Company Self-Registration
+**Goal**: Owner cria empresa no ato do cadastro quando o CNPJ informado não existe na base — sem depender de intervenção do superuser
+**Depends on**: Nothing (standalone)
+**Requirements**: ONBOARD-01
+**Success Criteria** (what must be TRUE):
+  1. Na tela de cadastro, se o CNPJ digitado não encontrar empresa existente, aparece opção "Criar minha empresa" com campo Nome da empresa
+  2. Ao confirmar, a empresa é criada no banco com `status = 'trial'` e `trial_expires_at = now() + interval '30 days'`
+  3. O usuário é criado com role `adm` e vinculado à empresa recém-criada automaticamente
+  4. O fluxo de cadastro de usuário que JÁ encontra empresa pelo CNPJ continua funcionando sem alteração
+  5. Migration idempotente adiciona colunas `status`, `trial_expires_at` e `license_expires_at` à tabela `companies`
+**Plans**: TBD
+
+### Phase 22: Asaas Billing Integration
+**Goal**: Ao fim do trial de 30 dias, a empresa recebe cobrança automática via Asaas e o acesso ao app é suspenso se o pagamento não for realizado
+**Depends on**: Phase 21
+**Requirements**: BILLING-01, BILLING-02, BILLING-03
+**Success Criteria** (what must be TRUE):
+  1. Supabase Edge Function `create-asaas-customer` cria cliente no Asaas com CNPJ + email da empresa e retorna link de pagamento (PIX, boleto ou cartão)
+  2. pg_cron job diário identifica empresas com `trial_expires_at < now()` e `status = 'trial'` → envia email com link de pagamento e atualiza `status = 'payment_pending'`
+  3. Webhook Supabase recebe confirmação de pagamento do Asaas → atualiza `companies.status = 'active'` e `license_expires_at = now() + interval '30 days'`
+  4. pg_cron job diário identifica empresas com `license_expires_at < now()` e `status = 'active'` → atualiza `status = 'suspended'` e envia email de aviso
+  5. No login do app, se `company.status = 'suspended'` ou `'payment_pending'`, exibe tela de "Licença expirada" com botão que abre link de pagamento Asaas via url_launcher — dashboard não é acessível
+  6. Superuser/dev não são afetados pelo controle de licença
+**Plans**: TBD
+
+### Phase 23: Invite Users by Email
+**Goal**: Admin convida novos membros da equipe por email — conta criada já vinculada à empresa, sem o convidado precisar digitar CNPJ
+**Depends on**: Phase 21
+**Requirements**: ONBOARD-02
+**Success Criteria** (what must be TRUE):
+  1. Na UsersTab, existe botão/FAB "Convidar usuário" visível para role `adm` e `superuser`
+  2. Um bottom sheet permite digitar email e escolher role (`adm` ou `auditor`)
+  3. Supabase Edge Function `invite-user` chama `supabase.auth.admin.inviteUserByEmail` com metadados `{company_id, role}` no user_metadata
+  4. O convidado recebe email do Supabase com link de definição de senha — ao clicar, seu perfil é inserido na tabela `profiles` já com `company_id` e `role` corretos via trigger de banco
+  5. Após aceitar o convite, o usuário aparece normalmente na lista de usuários com role e empresa vinculados
+**Plans**: TBD
+
 ---
 
 ## Progress
@@ -119,6 +159,9 @@ Archive: [.planning/milestones/v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md)
 | 18. Firebase Infrastructure | v1.3 | 0/? | Not started | — |
 | 19. Token Registration | v1.3 | 0/? | Not started | — |
 | 20. Backend Triggers + Push Dispatch | v1.3 | 0/? | Not started | — |
+| 21. Company Self-Registration | v1.3 | 0/? | Not started | — |
+| 22. Asaas Billing Integration | v1.3 | 0/? | Not started | — |
+| 23. Invite Users by Email | v1.3 | 0/? | Not started | — |
 
 ---
 

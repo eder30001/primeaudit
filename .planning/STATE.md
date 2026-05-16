@@ -1,7 +1,7 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.3
-milestone_name: Notificações
+milestone_name: Onboarding, Billing & Notificações
 status: active
 stopped_at: ""
 last_updated: "2026-05-13T21:00:00Z"
@@ -15,7 +15,7 @@ last_activity: 2026-05-15
 See: .planning/PROJECT.md (updated 2026-05-13)
 
 **Core value:** Nenhum dado de auditoria preenchido em campo deve ser perdido — save silencioso ou falha de rede não pode comprometer o trabalho do auditor.
-**Current focus:** v1.3 Notificações — Phase 18: Firebase Infrastructure
+**Current focus:** v1.3 Onboarding, Billing & Notificações — Phase 21: Company Self-Registration
 
 ### Quick Tasks Completed
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-13)
 
 ## Current Position
 
-Phase: 18 — Firebase Infrastructure
-Plan: TBD (roadmap created, planning starts next)
+Phase: 21 — Company Self-Registration (next to build)
+Plan: TBD (planning starts next)
 Status: Not started
-Progress: ░░░░░░░░░░ 0% (0 of 3 phases complete)
+Progress: ░░░░░░░░░░ 0% (0 of 6 phases complete)
 
-Roadmap: 3 phases (18–20) | 8 requirements | 0% complete
+Roadmap: 6 phases (18–23) | Firebase phases (18–20) postponed | Onboarding + Billing (21–23) priority
 
 ## Deferred Items (acknowledged at v1.2 close)
 
@@ -57,8 +57,19 @@ Roadmap: 3 phases (18–20) | 8 requirements | 0% complete
 
 ### v1.3 Phase Map
 
-| Phase | Name | Requirements |
-|-------|------|--------------|
-| 18 | Firebase Infrastructure | INFRA-03, INFRA-01 |
-| 19 | Token Registration | NOTIF-04 |
-| 20 | Backend Triggers + Push Dispatch | NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-05, INFRA-02 |
+| Phase | Name | Requirements | Priority |
+|-------|------|--------------|----------|
+| 18 | Firebase Infrastructure | INFRA-03, INFRA-01 | Postponed |
+| 19 | Token Registration | NOTIF-04 | Postponed |
+| 20 | Backend Triggers + Push Dispatch | NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-05, INFRA-02 | Postponed |
+| 21 | Company Self-Registration | ONBOARD-01 | **Next** |
+| 22 | Asaas Billing Integration | BILLING-01, BILLING-02, BILLING-03 | After 21 |
+| 23 | Invite Users by Email | ONBOARD-02 | After 21 |
+
+### Decisions (v1.3 additions)
+
+- Asaas escolhido como gateway de pagamento (PIX/boleto/cartão, API BR, NF automática)
+- Trial de 30 dias sem cartão → cobrança por email ao vencer
+- Supabase Edge Functions para chamadas que requerem service_role (invite + Asaas)
+- pg_cron para jobs diários de verificação de licença
+- Superuser/dev isentos de controle de licença
