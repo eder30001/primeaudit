@@ -21,6 +21,7 @@ See: .planning/PROJECT.md (updated 2026-05-13)
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260515-qzt | Criar tela hub "Modelos" no drawer | 2026-05-15 | cebc460 | [260515-qzt-criar-tela-hub-modelos](./quick/260515-qzt-criar-tela-hub-modelos/) |
 
 ## Current Position
 
