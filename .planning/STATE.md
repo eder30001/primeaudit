@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-05-13)
 
 ## Current Position
 
-Phase: 21 — Company Self-Registration (next to build)
-Plan: TBD (planning starts next)
-Status: Not started
+Phase: 21 — Company Self-Registration
+Plan: 3 plans (21-01, 21-02, 21-03) | 2 waves
+Status: Ready to execute
 Progress: ░░░░░░░░░░ 0% (0 of 6 phases complete)
 
 Roadmap: 6 phases (18–23) | Firebase phases (18–20) postponed | Onboarding + Billing (21–23) priority
